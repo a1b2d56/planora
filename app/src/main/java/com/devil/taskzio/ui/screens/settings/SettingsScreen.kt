@@ -395,10 +395,28 @@ private fun NameDialog(current: String, onDismiss: () -> Unit, onSave: (String) 
         onDismissRequest = onDismiss,
         title = { Text("Your Name") },
         text = {
-            OutlinedTextField(
-                value = name, onValueChange = { name = it },
-                placeholder = { Text("Enter your name") }, singleLine = true,
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text("Enter your name") },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_person), null, modifier = Modifier.size(20.dp)) },
+                trailingIcon = {
+                    if (name.isNotBlank()) {
+                        IconButton(onClick = { name = "" }) {
+                            Icon(painterResource(R.drawable.ic_close), "Clear", modifier = Modifier.size(18.dp))
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = CircleShape,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                )
             )
         },
         confirmButton = { Button(onClick = { onSave(name.trim()) }, enabled = name.trim().isNotBlank()) { Text("Save") } },

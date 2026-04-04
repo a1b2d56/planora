@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -115,10 +116,20 @@ fun WelcomeScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
+                        TextField(
                             value = name, onValueChange = { name = it },
-                            placeholder = { Text("Your name") }, singleLine = true,
-                            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp),
+                            placeholder = { Text("Your name") },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_person), null, modifier = Modifier.size(20.dp)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = CircleShape,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent
+                            ),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = { if (nameValid) onComplete(name.trim()) })
                         )
