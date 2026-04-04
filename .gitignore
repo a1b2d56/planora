@@ -1,0 +1,46 @@
+# ── Build outputs ────────────────────────────────────────────────
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# ── Gradle ───────────────────────────────────────────────────────
+.gradle/
+build/
+app/build/
+app/release/
+gradlew
+gradlew.bat
+gradle/
+
+# ── Android Studio / IntelliJ ────────────────────────────────────
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ── Kotlin ───────────────────────────────────────────────────────
+.kotlin/
+
+# ── Local / secret configuration ─────────────────────────────────
+local.properties
+google-services.json
+keystore.properties
+build.err
+build.out
+build_log.txt
+
+# ── Signing keys (never commit!) ─────────────────────────────────
+*.jks
+*.keystore
+
+# ── Crash / analysis reports ─────────────────────────────────────
+*.hprof
+analyse/
+
+# ── OS junk ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db

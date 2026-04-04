@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Taskzio</string>
+    <string name="default_web_client_id" translatable="false">855769009651-jj4lqrcnhuda9sgcl50cn2d2hk1cf8o8.apps.googleusercontent.com</string>
+</resources>
