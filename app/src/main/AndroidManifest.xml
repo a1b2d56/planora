@@ -6,17 +6,17 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <application
-        android:name=".TaskzioApp"
+        android:name=".PlanoraApp"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Taskzio"
+        android:theme="@style/Theme.Planora"
         tools:ignore="RemoveWorkManagerInitializer">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Taskzio.SplashScreen"
+            android:theme="@style/Theme.Planora.SplashScreen"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

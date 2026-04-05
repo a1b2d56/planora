@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Taskzio"
+rootProject.name = "Planora"
 include(":app")

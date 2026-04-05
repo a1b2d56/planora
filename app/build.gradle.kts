@@ -18,11 +18,11 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace  = "com.devil.taskzio"
+    namespace  = "com.planora.app"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.devil.taskzio"
+        applicationId = "com.planora.app"
         minSdk        = 34
         targetSdk     = 36
         versionCode   = 128
