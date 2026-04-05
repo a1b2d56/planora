@@ -59,7 +59,10 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
         }
-        debug { isDebuggable = true }
+        debug {
+            isDebuggable = true
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
 
     compileOptions {

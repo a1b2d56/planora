@@ -38,9 +38,9 @@ class TaskViewModel @Inject constructor(private val repository: TaskRepository) 
         _debouncedSearch,
         repository.getAllTasks().distinctUntilChanged()
     ) { filter, category, query, allTasks ->
-        // Derive categories inline â€” avoids a 5th Room DB observer
+        // Derive categories inline  --  avoids a 5th Room DB observer
         val categories = allTasks.map { it.category }.filter { it.isNotBlank() }.distinct().sorted()
-        // One-pass: filter â†’ category â†’ search
+        // One-pass: filter → category → search
         val tasks = allTasks
             .let { t -> when (filter) {
                 TaskFilter.ALL           -> t
@@ -54,7 +54,7 @@ class TaskViewModel @Inject constructor(private val repository: TaskRepository) 
                 it.description.contains(query, ignoreCase = true) ||
                 it.category.contains(query, ignoreCase = true)
             } else t }
-        // Derive counts from allTasks â€” removes 2 extra Room DB observers
+        // Derive counts from allTasks  --  removes 2 extra Room DB observers
         val activeCount    = allTasks.count { !it.isCompleted }
         val completedCount = allTasks.count { it.isCompleted }
         TaskUiState(tasks, filter, category, query, categories, activeCount, completedCount)

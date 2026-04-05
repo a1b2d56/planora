@@ -24,7 +24,7 @@ enum class SpanType { Bold, Italic, Strikethrough, Heading1, Heading2, BulletLis
 data class RichSpan(val start: Int, val end: Int, val type: SpanType)
 
 /**
- * Core rich text state engine â€” rewritten for correctness.
+ * Core rich text state engine  --  rewritten for correctness.
  *
  * Key design: user-toggled styles are STICKY and separate from cursor-derived styles.
  * This prevents bold/italic from being lost on subsequent keystrokes.
@@ -35,14 +35,14 @@ class RichTextState {
         private set
 
     private val _spans = mutableStateListOf<RichSpan>()
-    // User-toggled styles â€” sticky until explicitly toggled off.
+    // User-toggled styles  --  sticky until explicitly toggled off.
     // These are NOT cleared on cursor movement or text change.
     private val _userToggledStyles = mutableSetOf<SpanType>()
 
     // Whether the user has explicitly toggled styles since last cursor move
     private var _hasUserToggle = false
 
-    // Observable version counter â€” incremented on any style change to trigger recomposition
+    // Observable version counter  --  incremented on any style change to trigger recomposition
     private var _styleVersion by mutableIntStateOf(0)
 
     var selection by mutableStateOf(TextRange(0))
@@ -132,7 +132,7 @@ class RichTextState {
                 
                 val isLineEmpty = lineContent.trim().isEmpty()
                 val prefix = if (isLineEmpty) "" else "\n"
-                val bullet = "${prefix}â€¢ "
+                val bullet = "${prefix}• "
                 val insertPos = if (isLineEmpty) lineStart else pos
                 
                 // Adjust spans for character insertion
@@ -302,18 +302,18 @@ class RichTextState {
 
         when {
             editEnd <= s -> {
-                // Edit entirely before span â€” shift both
+                // Edit entirely before span  --  shift both
                 s += delta; e += delta
             }
             editStart >= e -> {
-                // Edit entirely after span â€” no change
+                // Edit entirely after span  --  no change
             }
             editStart <= s && editEnd >= e -> {
-                // Edit engulfs span â€” remove
+                // Edit engulfs span  --  remove
                 return null
             }
             editStart >= s && editEnd <= e -> {
-                // Edit within span â€” grow/shrink end
+                // Edit within span  --  grow/shrink end
                 e += delta
             }
             editStart < s -> {

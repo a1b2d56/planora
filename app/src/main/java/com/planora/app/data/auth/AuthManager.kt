@@ -1,7 +1,8 @@
-﻿package com.planora.app.data.auth
+package com.planora.app.data.auth
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
@@ -9,6 +10,8 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.exceptions.NoCredentialException
 import com.planora.app.R
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.api.services.drive.DriveScopes
@@ -92,6 +95,29 @@ class AuthManager @Inject constructor(
             credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             GoogleIdTokenCredential.createFrom(credential.data)
         } else {
+            null
+        }
+    }
+
+    /** 
+     * Requests authorization for the Google Drive AppData scope.
+     * Returns the AuthorizationResult which contains either:
+     * - An access token (if already authorized)
+     * - A PendingIntent (if user consent is needed)
+     */
+    suspend fun authorizeDrive(activity: Activity): AuthorizationResult? {
+        val request = AuthorizationRequest.builder()
+            .setRequestedScopes(listOf(Scope(DriveScopes.DRIVE_APPDATA)))
+            .build()
+
+        return try {
+            val result = Identity.getAuthorizationClient(activity)
+                .authorize(request)
+                .await()
+            Log.d("AuthManager", "Drive auth result: hasResolution=${result.hasResolution()}, token=${result.accessToken?.take(10)}...")
+            result
+        } catch (e: Exception) {
+            Log.e("AuthManager", "Drive authorization failed", e)
             null
         }
     }

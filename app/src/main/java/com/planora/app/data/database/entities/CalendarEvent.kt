@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 enum class EventType { EVENT, BIRTHDAY, REMINDER, HOLIDAY }
 
-/** Human-readable display name, e.g. BIRTHDAY â†’ "Birthday". */
+/** Human-readable display name, e.g. BIRTHDAY → "Birthday". */
 val EventType.displayName: String
     get() = name.lowercase().replaceFirstChar { it.uppercase() }
 
@@ -22,5 +22,5 @@ data class CalendarEvent(
     val isAllDay: Boolean = false,
     val isYearly: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
-    // reminderMinutes removed â€” stored but never read or acted upon
+    // reminderMinutes removed  --  stored but never read or acted upon
 )

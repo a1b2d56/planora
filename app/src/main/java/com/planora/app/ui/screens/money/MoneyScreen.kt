@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.screens.money
+package com.planora.app.ui.screens.money
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -117,7 +117,7 @@ private fun BalanceSummaryCard(balance: Double, income: Double, expense: Double,
                 style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
                 color = if (balance >= 0) IncomeGreen else ExpenseRed)
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Income and expense as a pair â€” one loop, no duplication
+                // Income and expense as a pair — one loop, no duplication
                 listOf("Income" to income to (IncomeGreen to R.drawable.ic_arrow_upward),
                        "Expenses" to expense to (ExpenseRed  to R.drawable.ic_arrow_downward)
                 ).forEach { (labelAmount, colorIcon) ->

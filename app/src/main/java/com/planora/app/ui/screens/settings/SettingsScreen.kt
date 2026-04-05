@@ -1,7 +1,10 @@
-﻿package com.planora.app.ui.screens.settings
+package com.planora.app.ui.screens.settings
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -113,6 +116,17 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     
     val activeDialog = remember { mutableStateOf(SettingsDialog.NONE) }
     
+    // Launcher for Drive consent dialog (when user hasn't granted Drive scope yet)
+    val driveConsentLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.retryPendingCloudOperation(activity)
+        } else {
+            viewModel.clearBackupStatus()
+        }
+    }
+    
     val versionName = remember {
         try {
             val info = context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
@@ -122,10 +136,16 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         }
     }
 
-
     // Refresh status on entry
     LaunchedEffect(Unit) {
         viewModel.refreshAuthStatus()
+    }
+    
+    // Observe Drive consent requests from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.driveConsentRequired.collect { intentSenderRequest ->
+            driveConsentLauncher.launch(intentSenderRequest)
+        }
     }
 
     LaunchedEffect(state.backupStatus) {
@@ -273,7 +293,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                             iconBg = MaterialTheme.colorScheme.primary,
                             title = "Back up to Cloud",
                             subtitle = "Sync secure backup to Google Drive",
-                            type = SettingsRowType.Click { viewModel.backupToCloud(context) }
+                            type = SettingsRowType.Click { viewModel.backupToCloud(activity) }
                         )
                         SettingsDivider()
                         SettingsRow(
@@ -281,7 +301,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                             iconBg = MaterialTheme.colorScheme.secondary,
                             title = "Restore from Cloud",
                             subtitle = "Download layout & data",
-                            type = SettingsRowType.Click { viewModel.restoreFromCloud(context) }
+                            type = SettingsRowType.Click { viewModel.restoreFromCloud(activity) }
                         )
                     }
                 }
@@ -390,7 +410,8 @@ private fun ThemeOption(
 private fun NameDialog(current: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
     var name by remember { mutableStateOf(current) }
     AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surface, 
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
         onDismissRequest = onDismiss,
         title = { Text("Your Name") },
         text = {
@@ -410,10 +431,18 @@ private fun NameDialog(current: String, onDismiss: () -> Unit, onSave: (String) 
 @Composable
 private fun CurrencyDialog(current: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
     var symbol by remember { mutableStateOf(current) }
-    val options = listOf("$" to "Dollars", "Â£" to "Pounds", "â‚¬" to "Euros", "Â¥" to "Yen / Yuan", "â‚£" to "Swiss Franc", "â‚¹" to "Rupees")
+    val options = listOf(
+        "$" to "Dollars",
+        "£" to "Pounds",
+        "€" to "Euros",
+        "¥" to "Yen / Yuan",
+        "₣" to "Swiss Franc",
+        "₹" to "Rupees"
+    )
     
     AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surface, 
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
         onDismissRequest = onDismiss,
         title = { Text("Currency Symbol") },
         text = {

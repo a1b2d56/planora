@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.screens.calendar
+package com.planora.app.ui.screens.calendar
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -44,7 +44,7 @@ fun CalendarScreen(
     ) { paddingValues ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 120.dp + navBarPadding)) {
-            /* â”€â”€ Elevated header: top bar + month nav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── Elevated header: top bar + month nav ────────────── */
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),

@@ -1,4 +1,4 @@
-﻿package com.planora.app.utils
+package com.planora.app.utils
 
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -30,7 +30,7 @@ object DateUtils {
     fun formatShortDate(millis: Long): String = millis.toLocalDate().format(fmtShortDate)
     fun formatMonthYear(millis: Long): String = millis.toLocalDate().format(fmtMonthYear)
     fun formatDayNumber(millis: Long): String = millis.toLocalDate().format(fmtDayNumber)
-    /** Returns e.g. "Sunday, March 8" â€” used in the hero greeting card. */
+    /** Returns e.g. "Sunday, March 8" — used in the hero greeting card. */
     fun formatDayOfWeek(millis: Long): String = millis.toLocalDate().format(fmtDayOfWeek)
 
     fun relativeTime(millis: Long): String {
@@ -72,17 +72,17 @@ object DateUtils {
      * in a Mon-first calendar grid for the given [year] and [month] (0-indexed, Calendar style).
      */
     fun getCalendarDaysForMonth(year: Int, month: Int): List<Long?> {
-        val firstDay = LocalDate.of(year, month + 1, 1)   // month is 0-indexed â†’ +1
+        val firstDay = LocalDate.of(year, month + 1, 1)   // month is 0-indexed -> +1
         val daysInMonth = firstDay.lengthOfMonth()
         // Monday = 1 in DayOfWeek, so offset from Monday = dayOfWeek.value - 1
         val offset = firstDay.dayOfWeek.value - 1
-        val totalCells = 42   // 6 rows Ã— 7 columns â€” always stable grid
+        val totalCells = 42   // 6 rows × 7 columns — always stable grid
         return buildList(totalCells) {
             repeat(offset) { add(null) }
             for (day in 1..daysInMonth) {
                 add(firstDay.withDayOfMonth(day).atStartOfDay(zone).toInstant().toEpochMilli())
             }
-            // Pad trailing cells to fill the 6Ã—7 grid
+            // Pad trailing cells to fill the 6x7 grid
             while (size < totalCells) add(null)
         }
     }

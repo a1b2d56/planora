@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.components
+package com.planora.app.ui.components
 
 import androidx.annotation.DrawableRes
 
@@ -121,7 +121,7 @@ fun DetailTopBar(title: String, onBack: () -> Unit) {
 
 /**
  * Shared section header.
- * [compact] = true â†’ label style + tighter padding (used by Dashboard).
+ * [compact] = true → label style + tighter padding (used by Dashboard).
  * [action] + [onAction] = optional trailing text button.
  */
 @Composable
@@ -382,7 +382,7 @@ fun PlanoraSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Searchâ€¦"
+    placeholder: String = "Search…"
 ) {
     TextField(
         value = query,
@@ -537,6 +537,7 @@ fun PlanoraDatePickerField(
             onDismissRequest = { showDatePicker = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             Column(

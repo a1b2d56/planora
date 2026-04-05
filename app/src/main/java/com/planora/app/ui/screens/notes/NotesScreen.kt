@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.screens.notes
+package com.planora.app.ui.screens.notes
 
 
 import androidx.compose.foundation.*
@@ -44,7 +44,7 @@ fun NotesScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            /* â”€â”€ Elevated header: top bar + search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── Elevated header: top bar + search ───────────── */
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
@@ -57,7 +57,7 @@ fun NotesScreen(
                     PlanoraSearchBar(
                         query = uiState.searchQuery,
                         onQueryChange = viewModel::setSearchQuery,
-                        placeholder = "Search notesâ€¦",
+                        placeholder = "Search notes…",
                         modifier = Modifier.padding(horizontal = SpacingMedium, vertical = SpacingSmall)
                     )
                     Spacer(Modifier.height(SpacingSmall))

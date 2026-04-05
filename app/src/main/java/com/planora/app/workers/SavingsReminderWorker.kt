@@ -1,4 +1,4 @@
-﻿package com.planora.app.workers
+package com.planora.app.workers
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -55,7 +55,7 @@ class SavingsReminderWorker @AssistedInject constructor(
         const val WORK_NAME            = "savings_daily_reminder"
 
         fun schedule(workManager: WorkManager) {
-            // Calculate delay to next 9:00 AM â€” so reminders always fire at a sensible time
+            // Calculate delay to next 9:00 AM — so reminders always fire at a sensible time
             val zone = ZoneId.systemDefault()
             val now  = ZonedDateTime.now(zone)
             var next9AM = now.toLocalDate().atTime(9, 0).atZone(zone)

@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.components.richtext
+package com.planora.app.ui.components.richtext
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -40,8 +40,8 @@ fun FormatToolbar(
         FormatButton("S", SpanType.Strikethrough, state, tintColor)
         FormatButton("H1", SpanType.Heading1, state, tintColor)
         FormatButton("H2", SpanType.Heading2, state, tintColor)
-        FormatButton("â€¢", SpanType.BulletList, state, tintColor)
-        FormatButton("â", SpanType.Quote, state, tintColor)
+        FormatButton("\u2022", SpanType.BulletList, state, tintColor)
+        FormatButton("\u201C", SpanType.Quote, state, tintColor)
     }
 }
 
@@ -54,7 +54,7 @@ private fun FormatButton(
 ) {
     val isActive  = state.isStyleActive(type)
     val primary   = MaterialTheme.colorScheme.primary
-    // Memoize color variants â€” only recompute when tintColor or primary changes
+    // Memoize color variants - only recompute when tintColor or primary changes
     val activeBg      = remember(primary)    { primary.copy(alpha = 0.25f) }
     val inactiveBg    = remember(tintColor)  { tintColor.copy(alpha = 0.1f) }
     val inactiveText  = remember(tintColor)  { tintColor.copy(alpha = 0.7f) }

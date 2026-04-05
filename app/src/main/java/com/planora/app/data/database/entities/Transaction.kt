@@ -18,5 +18,5 @@ data class Transaction(
     val note: String = "",
     val date: Long = System.currentTimeMillis(),
     val linkedSavingsGoalId: Long? = null
-    // createdAt removed â€” never read or used anywhere; date serves as the record timestamp
+    // createdAt removed  --  never read or used anywhere; date serves as the record timestamp
 )

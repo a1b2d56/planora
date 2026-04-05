@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.screens.savings
+package com.planora.app.ui.screens.savings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -165,14 +165,14 @@ private fun SavingsGoalCard(goal: SavingsGoal, sym: String, onEdit: () -> Unit,
                             }
                         }
                     }
-                    val subtitle = remember(goal.durationDays, goal.dailySaving, sym) { "${goal.durationDays} day goal Â· Save ${FormatUtils.formatCurrency(goal.dailySaving, sym)}/day" }
+                    val subtitle = remember(goal.durationDays, goal.dailySaving, sym) { "${goal.durationDays} day goal · Save ${FormatUtils.formatCurrency(goal.dailySaving, sym)}/day" }
                     Text(subtitle,
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onEdit) { Icon(painterResource(R.drawable.ic_edit), "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 IconButton(onClick = onDelete) { Icon(painterResource(R.drawable.ic_delete), "Delete", tint = ExpenseRed.copy(alpha = 0.7f)) }
             }
-            // Amount summary â€” 3 stats in a row, avoids duplication with a helper lambda
+            // Amount summary — 3 stats in a row, avoids duplication with a helper lambda
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 listOf(
                     Triple("Saved",     goal.currentAmount,  IncomeGreen),
@@ -224,8 +224,8 @@ private fun AddSavingDialog(dailyAmount: Double, sym: String, onDismiss: () -> U
     var amount by remember { mutableStateOf("%.2f".format(dailyAmount)) }
     AlertDialog(onDismissRequest = onDismiss, modifier = Modifier.fillMaxWidth(0.9f).wrapContentHeight(),
         containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
         shape = CardShape,
-        tonalElevation = 6.dp,
         title = { Text("Add Saving") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

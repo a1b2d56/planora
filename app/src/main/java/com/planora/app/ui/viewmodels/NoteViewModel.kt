@@ -26,7 +26,7 @@ class NoteViewModel @Inject constructor(
         .debounce { if (it.isBlank()) 0L else 300L }  // skip DB round-trip on every keystroke
         .distinctUntilChanged()
         .flatMapLatest { query ->
-        // Capture query in lambda scope â€” fixes race condition where .value could differ
+        // Capture query in lambda scope  --  fixes race condition where .value could differ
         val source = if (query.isBlank()) repository.getAllNotes() else repository.searchNotes(query)
         source.map { NoteUiState(notes = it, searchQuery = query) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NoteUiState())

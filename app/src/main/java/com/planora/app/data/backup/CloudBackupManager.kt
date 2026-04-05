@@ -1,16 +1,16 @@
-﻿package com.planora.app.data.backup
+package com.planora.app.data.backup
 
-import android.accounts.Account
 import android.content.Context
 import com.planora.app.data.database.PlanoraDatabase
 import com.planora.app.theme.AppTheme
 import com.planora.app.utils.PrefsManager
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.FileContent
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
-import com.google.api.services.drive.DriveScopes
+import com.google.auth.http.HttpCredentialsAdapter
+import com.google.auth.oauth2.AccessToken
+import com.google.auth.oauth2.GoogleCredentials
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -22,33 +22,32 @@ import javax.inject.Singleton
 
 /**
  * Handles seamless cloud backup by serializing the entire database
- * into a single JSON object. This removes any dependency on rigid SQLite files
- * and eliminates native C++ crashes during restores.
+ * into a single JSON object. Uses an access token obtained from 
+ * the Identity Authorization API for Drive access.
  */
 @Singleton
 class CloudBackupManager @Inject constructor() {
     
     companion object {
+        private const val TAG = "PlanoraBackup"
         private const val CLOUD_FILE_NAME = "Planora_data_sync.json"
     }
 
-    private fun getDriveService(context: Context, email: String): Drive {
-        if (email.isEmpty()) {
-            throw IllegalStateException("User email not found. Please sign in again.")
-        }
-
-        val credential = GoogleAccountCredential.usingOAuth2(
-            context, listOf(DriveScopes.DRIVE_APPDATA)
-        ).apply { 
-            selectedAccount = Account(email, "com.google")
-        }
-        
-        Log.d("PlanoraBackup", "Initializing Drive service for: $email")
+    /**
+     * Creates a Drive service using an OAuth2 access token obtained
+     * from the Identity Authorization Client. This avoids the stale
+     * GoogleAccountCredential path that doesn't share tokens with
+     * the modern Identity API.
+     */
+    private fun getDriveService(accessToken: String): Drive {
+        val credentials = GoogleCredentials.create(
+            AccessToken(accessToken, null)
+        )
 
         return Drive.Builder(
             NetHttpTransport(),
             GsonFactory.getDefaultInstance(),
-            credential
+            HttpCredentialsAdapter(credentials)
         ).setApplicationName("Planora Data Sync").build()
     }
 
@@ -58,10 +57,10 @@ class CloudBackupManager @Inject constructor() {
     suspend fun backupToCloud(
         context: Context, 
         database: PlanoraDatabase,
-        prefsManager: PrefsManager
+        prefsManager: PrefsManager,
+        accessToken: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val email = prefsManager.userEmail.first()
             val syncDao = database.syncDao()
             
             // 1. Gather all current state
@@ -86,7 +85,9 @@ class CloudBackupManager @Inject constructor() {
             tempFile.writeText(jsonString)
 
             // 3. Connect to Drive and find existing backup
-            val drive = getDriveService(context, email)
+            val drive = getDriveService(accessToken)
+            Log.d(TAG, "Drive service created, searching for existing backup...")
+            
             val fileList = drive.files().list()
                 .setSpaces("appDataFolder")
                 .setQ("name='$CLOUD_FILE_NAME'")
@@ -97,8 +98,10 @@ class CloudBackupManager @Inject constructor() {
 
             // 4. Update or Create
             if (existingFileId != null) {
+                Log.d(TAG, "Updating existing backup: $existingFileId")
                 drive.files().update(existingFileId, null, fileContent).execute()
             } else {
+                Log.d(TAG, "Creating new backup file...")
                 val fileMetadata = com.google.api.services.drive.model.File().apply {
                     name = CLOUD_FILE_NAME
                     parents = listOf("appDataFolder")
@@ -107,6 +110,7 @@ class CloudBackupManager @Inject constructor() {
             }
 
             tempFile.delete()
+            Log.d(TAG, "Backup completed successfully!")
             Result.success(Unit)
         } catch (e: Exception) {
             val sw = StringWriter()
@@ -118,8 +122,8 @@ class CloudBackupManager @Inject constructor() {
                 "${e::class.java.simpleName}: ${e.message ?: "sync error"}"
             }
             
-            Log.e("PlanoraBackup", "CRITICAL FAILURE: $errorMessage")
-            Result.failure(e)
+            Log.e(TAG, "BACKUP FAILURE: $errorMessage\n$sw")
+            Result.failure(Exception(errorMessage, e))
         }
     }
 
@@ -129,11 +133,12 @@ class CloudBackupManager @Inject constructor() {
     suspend fun restoreFromCloud(
         context: Context,
         database: PlanoraDatabase,
-        prefsManager: PrefsManager
+        prefsManager: PrefsManager,
+        accessToken: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val email = prefsManager.userEmail.first()
-            val drive = getDriveService(context, email)
+            val drive = getDriveService(accessToken)
+            Log.d(TAG, "Drive service created, searching for backup to restore...")
             
             // 1. Find the backup file
             val fileList = drive.files().list()
@@ -145,6 +150,7 @@ class CloudBackupManager @Inject constructor() {
                 ?: throw FileNotFoundException("No cloud backup found on your Drive.")
 
             // 2. Download and read JSON
+            Log.d(TAG, "Downloading backup: ${backupFile.id}")
             val tempFile = File(context.cacheDir, "import_temp.json")
             FileOutputStream(tempFile).use { outputStream ->
                 drive.files().get(backupFile.id).executeMediaAndDownloadTo(outputStream)
@@ -170,10 +176,13 @@ class CloudBackupManager @Inject constructor() {
             prefsManager.setUserName(syncData.preferences.userName)
 
             tempFile.delete()
+            Log.d(TAG, "Restore completed successfully!")
             Result.success(Unit)
         } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
+            val sw = StringWriter()
+            e.printStackTrace(PrintWriter(sw))
+            Log.e(TAG, "RESTORE FAILURE: ${e.message}\n$sw")
+            Result.failure(Exception(e.message ?: "Restore failed", e))
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿package com.planora.app.utils
+package com.planora.app.utils
 
 /** App-wide number formatting helpers. */
 object FormatUtils {
-    /** Format a double as a compact human-readable number: 1200 â†’ 1.2K, 2500000 â†’ 2.5M. */
+    /** Format a double as a compact human-readable number: 1200 -> 1.2K, 2500000 -> 2.5M. */
     fun formatShort(value: Double): String = when {
         value >= 1_000_000 -> "%.1fM".format(value / 1_000_000)
         value >= 1_000     -> "%.1fK".format(value / 1_000)

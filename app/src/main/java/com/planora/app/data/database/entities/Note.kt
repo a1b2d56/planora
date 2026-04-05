@@ -3,7 +3,7 @@
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// Note color options (hex, display name) â€” dark-first palette for AMOLED
+// Note color options (hex, display name)  --  dark-first palette for AMOLED
 val NOTE_COLORS = listOf(
     "#000000" to "Default",
     "#2D2000" to "Yellow",
@@ -23,5 +23,5 @@ data class Note(
     val color: String = "#000000",   // True AMOLED Black
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
-    // tags removed â€” was never read or written anywhere
+    // tags removed  --  was never read or written anywhere
 )

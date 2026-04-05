@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.screens.notes
+package com.planora.app.ui.screens.notes
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -194,7 +194,7 @@ fun NoteEditorScreen(
                 }
             )
 
-            // Rich text content editor â€” real formatting, no visible markers
+            // Rich text content editor — real formatting, no visible markers
             RichTextEditor(
                 state = richTextState,
                 textColor = onNoteColor,

@@ -1,8 +1,8 @@
-﻿package com.planora.app.ui.screens.welcome
+package com.planora.app.ui.screens.welcome
 
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,10 +12,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -45,9 +49,30 @@ fun WelcomeScreen(
         }
     }
 
+    val infiniteTransition = rememberInfiniteTransition(label = "breathing")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "scale"
+    )
+
     Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding().navigationBarsPadding(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.background
+                    )
+                )
+            )
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -56,16 +81,24 @@ fun WelcomeScreen(
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
             Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(80.dp)
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                modifier = Modifier
+                    .size(100.dp)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .clip(RoundedCornerShape(28.dp)),
+                tonalElevation = 8.dp,
+                shadowElevation = 12.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         painter = painterResource(R.drawable.ic_splash_icon),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(62.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(56.dp)
                     )
                 }
             }
@@ -78,7 +111,7 @@ fun WelcomeScreen(
                         Text("Welcome to Planora",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                        Text("Your personal productivity companion.\nTasks, money, savings and notes â€” all in one place.",
+                        Text("Your personal productivity companion.\nTasks, money, savings and notes — all in one place.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(8.dp))

@@ -35,7 +35,7 @@ object DatabaseModule {
             .build()
     }
 
-    // DAOs â€” @Singleton ensures one instance per app lifetime
+    // DAOs  --  @Singleton ensures one instance per app lifetime
     @Suppress("unused") @Provides @Singleton fun provideTaskDao(db: PlanoraDatabase): TaskDao                   = db.taskDao()
     @Suppress("unused") @Provides @Singleton fun provideTransactionDao(db: PlanoraDatabase): TransactionDao     = db.transactionDao()
     @Suppress("unused") @Provides @Singleton fun provideSavingsGoalDao(db: PlanoraDatabase): SavingsGoalDao     = db.savingsGoalDao()

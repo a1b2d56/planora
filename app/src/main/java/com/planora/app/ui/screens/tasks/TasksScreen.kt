@@ -1,4 +1,4 @@
-﻿package com.planora.app.ui.screens.tasks
+package com.planora.app.ui.screens.tasks
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -75,7 +75,7 @@ fun TasksScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 120.dp + navBarPadding)
         ) {
-            /* â”€â”€ Elevated header: top bar + search + filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* ── Elevated header: top bar + search + filters ─────────── */
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -85,12 +85,12 @@ fun TasksScreen(
                 ) {
                     Column {
                         PlanoraTopBar(title = "My Tasks",
-                            subtitle = "${uiState.activeCount} active Â· ${uiState.completedCount} done")
+                            subtitle = "${uiState.activeCount} active · ${uiState.completedCount} done")
                         Spacer(Modifier.height(4.dp))
                         PlanoraSearchBar(
                             query = uiState.searchQuery,
                             onQueryChange = viewModel::setSearchQuery,
-                            placeholder = "Search tasksâ€¦",
+                            placeholder = "Search tasks…",
                             modifier = Modifier.padding(horizontal = SpacingMedium, vertical = 4.dp)
                         )
                         Spacer(Modifier.height(SpacingSmall))

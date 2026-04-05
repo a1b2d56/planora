@@ -8,12 +8,12 @@ val IncomeGreen  = Color(0xFF22C55E)
 val ExpenseRed   = Color(0xFFEF4444)
 val WarningAmber = Color(0xFFF59E0B)
 
-// Priority badge colors â€” aliases of semantic colors, no duplication
+// Priority badge colors  --  aliases of semantic colors, no duplication
 val PriorityHigh   = ExpenseRed
 val PriorityMedium = WarningAmber
 val PriorityLow    = IncomeGreen
 
-// Chart palette â€” muted tones that look great on AMOLED dark backgrounds
+// Chart palette  --  muted tones that look great on AMOLED dark backgrounds
 val chartColors = listOf(
     Color(0xFFBDA67A),  // tan
     Color(0xFF7BA7BC),  // steel blue

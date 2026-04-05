@@ -26,7 +26,7 @@ fun RichTextEditor(
 ) {
     val value = state.toTextFieldValue(textColor)
     val textStyle = remember(textColor) {
-        // lineHeight and color are the only non-default customizations â€” memoize the whole style
+        // lineHeight and color are the only non-default customizations  --  memoize the whole style
         androidx.compose.ui.text.TextStyle(
             color = textColor,
             fontSize = 16.sp,

@@ -37,7 +37,7 @@ fun SpendingDonutChart(
 ) {
     if (categorySpending.isEmpty()) return
 
-    // Stable derived value â€” only recomputed when the map content changes
+    // Stable derived value  --  only recomputed when the map content changes
     val sorted = remember(categorySpending) {
         val all = categorySpending.entries.sortedByDescending { it.value }
         if (all.size <= 8) {

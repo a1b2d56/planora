@@ -1,7 +1,8 @@
-﻿package com.planora.app.ui.viewmodels
+package com.planora.app.ui.viewmodels
 
 import android.app.Activity
-import android.content.Context
+import android.util.Log
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
@@ -33,6 +34,9 @@ sealed class BackupStatus {
     data class Error(val message: String) : BackupStatus()
 }
 
+/** Tracks which cloud operation is pending consent. */
+private enum class PendingCloudOp { NONE, BACKUP, RESTORE }
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val prefsManager: PrefsManager,
@@ -43,6 +47,12 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _backupStatus = MutableStateFlow<BackupStatus>(BackupStatus.Idle)
+    
+    /** Emits an IntentSenderRequest when Drive consent is needed. The UI observes this. */
+    private val _driveConsentRequired = MutableSharedFlow<IntentSenderRequest>()
+    val driveConsentRequired: SharedFlow<IntentSenderRequest> = _driveConsentRequired.asSharedFlow()
+    
+    private var pendingOp = PendingCloudOp.NONE
 
     // Combine preferences first
     private val prefsState = combine(
@@ -91,24 +101,72 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Gets a Drive access token, handling the consent flow if needed.
+     * Returns the token string, or null if authorization failed or consent is pending.
+     */
+    private suspend fun getDriveToken(activity: Activity): String? {
+        val authResult = authManager.authorizeDrive(activity)
+        if (authResult == null) {
+            _backupStatus.value = BackupStatus.Error("Drive authorization failed. Please sign in again.")
+            return null
+        }
+
+        if (authResult.hasResolution()) {
+            // User hasn't granted Drive consent yet — launch the consent dialog
+            Log.d("SettingsVM", "Drive consent needed, launching resolution intent...")
+            authResult.pendingIntent?.intentSender?.let { sender ->
+                _driveConsentRequired.emit(
+                    IntentSenderRequest.Builder(sender).build()
+                )
+            }
+            return null // Operation will be retried after consent
+        }
+
+        val token = authResult.accessToken
+        if (token.isNullOrBlank()) {
+            _backupStatus.value = BackupStatus.Error("Drive authorization succeeded but no token was returned.")
+            return null
+        }
+        return token
+    }
+
     /** Triggers a cloud backup upload */
-    fun backupToCloud(context: Context) = viewModelScope.launch {
+    fun backupToCloud(activity: Activity) = viewModelScope.launch {
         _backupStatus.value = BackupStatus.Loading
-        cloudBackupManager.backupToCloud(context, database, prefsManager).onSuccess {
+        pendingOp = PendingCloudOp.BACKUP
+
+        val token = getDriveToken(activity) ?: return@launch
+
+        cloudBackupManager.backupToCloud(activity, database, prefsManager, token).onSuccess {
             _backupStatus.value = BackupStatus.Success("Backup successfully synced to Google Drive!")
         }.onFailure {
-            _backupStatus.value = BackupStatus.Error(it.localizedMessage ?: "Failed to upload backup")
+            _backupStatus.value = BackupStatus.Error(it.message ?: "Failed to upload backup")
         }
     }
 
     /** Triggers a cloud backup restore */
-    fun restoreFromCloud(context: Context) = viewModelScope.launch {
+    fun restoreFromCloud(activity: Activity) = viewModelScope.launch {
         _backupStatus.value = BackupStatus.Loading
-        cloudBackupManager.restoreFromCloud(context, database, prefsManager).onSuccess {
+        pendingOp = PendingCloudOp.RESTORE
+
+        val token = getDriveToken(activity) ?: return@launch
+
+        cloudBackupManager.restoreFromCloud(activity, database, prefsManager, token).onSuccess {
             _backupStatus.value = BackupStatus.Success("Restore complete! Settings and data have been applied instantly.")
         }.onFailure {
-            _backupStatus.value = BackupStatus.Error(it.localizedMessage ?: "Failed to restore backup")
+            _backupStatus.value = BackupStatus.Error(it.message ?: "Failed to restore backup")
         }
+    }
+
+    /** Called after the user grants Drive consent via the system dialog. */
+    fun retryPendingCloudOperation(activity: Activity) {
+        when (pendingOp) {
+            PendingCloudOp.BACKUP -> backupToCloud(activity)
+            PendingCloudOp.RESTORE -> restoreFromCloud(activity)
+            PendingCloudOp.NONE -> {}
+        }
+        pendingOp = PendingCloudOp.NONE
     }
 
     /** Signs in using the unified Credential Manager flow */
@@ -118,16 +176,19 @@ class SettingsViewModel @Inject constructor(
             try {
                 authManager.signInWithGoogle(googleCredential.idToken)
                 
+                // Pre-authorize Drive scope (will show consent if needed)
+                authManager.authorizeDrive(activity)
+                
                 // Capture first name for personal touch if no name exists
                 val firstRunName = googleCredential.displayName?.substringBefore(" ")
-                if (firstRunName != null && prefsManager.userName.first().isBlank()) {
+                if (firstRunName != null && (prefsManager.userName.first().isBlank() || prefsManager.userName.first() == "User")) {
                     prefsManager.setUserName(firstRunName)
                 }
                 
                 refreshAuthStatus()
                 onComplete()
             } catch (e: Exception) {
-                _backupStatus.value = BackupStatus.Error("Authentication failed: ${e.message}")
+                _backupStatus.value = BackupStatus.Error("Authentication failed: ${e.localizedMessage ?: e.message ?: "Unknown error"}")
             }
         } else {
             // Silence silent failures (e.g. user canceled), but ensure loading stops

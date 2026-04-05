@@ -67,7 +67,7 @@ sealed class Screen(val route: String) {
     }
 }
 
-// Swipeable pages configuration â€” order matches the navbar leftâ†’right
+// Swipeable pages configuration  --  order matches the navbar left→right
 // Dashboard(0) Â· Tasks(1) Â· Money(2) Â· Savings(3) Â· Calendar(4) Â· Notes(5)
 private val ScrimColor = Color.Black.copy(alpha = 0.5f)
 
@@ -79,10 +79,10 @@ private val swipePages = listOf(
     Screen.Calendar,
     Screen.Notes
 )
-// O(1) lookup â€” avoids linear scan on every nav-bar tap
+// O(1) lookup  --  avoids linear scan on every nav-bar tap
 private val swipePageIndex: Map<Screen, Int> = swipePages.withIndex().associate { (i, s) -> s to i }
 
-// Navbar items â€” Dashboard intentionally excluded from pills
+// Navbar items  --  Dashboard intentionally excluded from pills
 data class NavItem(val screen: Screen, val label: String, @param:DrawableRes val icon: Int)
 
 val navItems = listOf(
@@ -198,7 +198,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
     }
 }
 
-// Pager host â€” handles swipeable pages, navigation UI, and sidebar
+// Pager host  --  handles swipeable pages, navigation UI, and sidebar
 @Composable
 private fun MainPagerHost(
     onNavigateToAddTask: () -> Unit,
@@ -431,7 +431,7 @@ private fun Sidebar(
                 color    = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
 
-            // Tab pages (pages 1â€“5)
+            // Tab pages (pages 1—5)
             navItems.forEachIndexed { i, item ->
                 SidebarItem(item.icon, item.label, currentPage == i + 1) { onNavigateToPage(i + 1) }
             }
