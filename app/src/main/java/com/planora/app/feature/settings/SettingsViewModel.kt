@@ -42,6 +42,7 @@ class SettingsViewModel @Inject constructor(
     private val prefsManager: PrefsManager,
     private val workManager: WorkManager,
     private val cloudBackupManager: CloudBackupManager,
+    private val offlineBackupManager: com.planora.app.core.data.backup.OfflineBackupManager,
     val authManager: AuthManager,
     private val database: PlanoraDatabase
 ) : ViewModel() {
@@ -156,6 +157,30 @@ class SettingsViewModel @Inject constructor(
             _backupStatus.value = BackupStatus.Success("Restore complete! Settings and data have been applied instantly.")
         }.onFailure {
             _backupStatus.value = BackupStatus.Error(it.message ?: "Failed to restore backup")
+        }
+    }
+
+    /** Triggers a local offline encrypted backup */
+    fun exportToOfflineBackup(context: android.content.Context, destinationUri: android.net.Uri, password: CharArray) = viewModelScope.launch {
+        _backupStatus.value = BackupStatus.Loading
+        offlineBackupManager.exportOfflineBackup(context, database, prefsManager, destinationUri, password).onSuccess {
+            password.fill('\u0000') // Clear password array from memory
+            _backupStatus.value = BackupStatus.Success("Offline backup successfully exported and encrypted!")
+        }.onFailure {
+            password.fill('\u0000')
+            _backupStatus.value = BackupStatus.Error(it.message ?: "Failed to export offline backup")
+        }
+    }
+
+    /** Triggers a local offline encrypted restore */
+    fun importFromOfflineBackup(context: android.content.Context, sourceUri: android.net.Uri, password: CharArray) = viewModelScope.launch {
+        _backupStatus.value = BackupStatus.Loading
+        offlineBackupManager.importOfflineBackup(context, database, prefsManager, sourceUri, password).onSuccess {
+            password.fill('\u0000') // Clear password array from memory
+            _backupStatus.value = BackupStatus.Success("Offline restore complete! Settings and data have been applied instantly.")
+        }.onFailure {
+            password.fill('\u0000')
+            _backupStatus.value = BackupStatus.Error(it.message ?: "Failed to decrypt or restore backup")
         }
     }
 

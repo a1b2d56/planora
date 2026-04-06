@@ -1,4 +1,4 @@
-﻿package com.planora.app.di
+package com.planora.app.di
 
 import android.content.Context
 import androidx.room.Room
@@ -28,7 +28,33 @@ object DatabaseModule {
         keyManager: DatabaseKeyManager
     ): PlanoraDatabase {
         System.loadLibrary("sqlcipher")
-        val factory = SupportOpenHelperFactory(keyManager.getPassphrase())
+        
+        val passphrase = keyManager.getPassphrase()
+        val dbFile = context.getDatabasePath("Planora_db")
+        
+        // --- SAFE OPEN DIAGNOSTIC ---
+        // If the OS restored the DB file but the Keystore was reset, SQLCipher will throw.
+        // We catch it and aggressively wipe the mismatched DB so the app doesn't crash permanently.
+        if (dbFile.exists()) {
+            try {
+                val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase(
+                    dbFile.absolutePath,
+                    passphrase,
+                    null,
+                    net.zetetic.database.sqlcipher.SQLiteDatabase.OPEN_READONLY,
+                    null
+                )
+                db.close()
+            } catch (e: Exception) {
+                android.util.Log.e("SQLCipher", "Failed to open encrypted database! Key mismatch or corrupted. Wiping DB to prevent crash.", e)
+                dbFile.delete()
+                context.getDatabasePath("Planora_db-wal").delete()
+                context.getDatabasePath("Planora_db-journal").delete()
+                context.getDatabasePath("Planora_db-shm").delete()
+            }
+        }
+
+        val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(context, PlanoraDatabase::class.java, "Planora_db")
             .openHelperFactory(factory)
             .fallbackToDestructiveMigration(dropAllTables = true)

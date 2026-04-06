@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Prevent Android Auto Backup from silently syncing the encrypted physical database -->
+        <!-- This breaks SQLCipher if the Keystore key isn't restored alongside it! -->
+        <exclude domain="database" path="Planora_db" />
+        <exclude domain="database" path="Planora_db-journal" />
+        <exclude domain="database" path="Planora_db-wal" />
+        <exclude domain="database" path="Planora_db-shm" />
+        <!-- Exclude the SharedPreferences file containing the Keystore key alias if needed, but it shouldn't matter since the DB is excluded -->
+        <exclude domain="sharedpref" path="Planora_db_keys.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="Planora_db" />
+        <exclude domain="database" path="Planora_db-journal" />
+        <exclude domain="database" path="Planora_db-wal" />
+        <exclude domain="database" path="Planora_db-shm" />
+        <exclude domain="sharedpref" path="Planora_db_keys.xml" />
+    </device-transfer>
+</data-extraction-rules>

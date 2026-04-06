@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,7 +105,13 @@ private fun SectionLabel(title: String) =
         modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
     )
 
-private enum class SettingsDialog { NONE, CURRENCY, NAME }
+private sealed interface SettingsDialog { 
+    data object None : SettingsDialog
+    data object Currency : SettingsDialog
+    data object Name : SettingsDialog
+    data class PasswordExport(val targetUri: android.net.Uri) : SettingsDialog
+    data class PasswordImport(val sourceUri: android.net.Uri) : SettingsDialog
+}
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
@@ -112,7 +120,20 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val activity = context as ComponentActivity
     
-    val activeDialog = remember { mutableStateOf(SettingsDialog.NONE) }
+    val activeDialog = remember { mutableStateOf<SettingsDialog>(SettingsDialog.None) }
+    
+    // Offline Backup Launchers
+    val offlineExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/x-planora")
+    ) { uri ->
+        uri?.let { activeDialog.value = SettingsDialog.PasswordExport(it) }
+    }
+    
+    val offlineImportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { activeDialog.value = SettingsDialog.PasswordImport(it) }
+    }
     
     // Launcher for Drive consent dialog (when user hasn't granted Drive scope yet)
     val driveConsentLauncher = rememberLauncherForActivityResult(
@@ -160,28 +181,52 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         }
     }
 
-    when (activeDialog.value) {
-        SettingsDialog.CURRENCY -> {
+    when (val dialog = activeDialog.value) {
+        SettingsDialog.Currency -> {
             CurrencyDialog(
                 current = state.currencySymbol,
-                onDismiss = { activeDialog.value = SettingsDialog.NONE },
+                onDismiss = { activeDialog.value = SettingsDialog.None },
                 onSave = { 
                     viewModel.setCurrencySymbol(it)
-                    activeDialog.value = SettingsDialog.NONE 
+                    activeDialog.value = SettingsDialog.None 
                 }
             )
         }
-        SettingsDialog.NAME -> {
+        SettingsDialog.Name -> {
             NameDialog(
                 current = state.userName,
-                onDismiss = { activeDialog.value = SettingsDialog.NONE },
+                onDismiss = { activeDialog.value = SettingsDialog.None },
                 onSave = { 
                     viewModel.setUserName(it)
-                    activeDialog.value = SettingsDialog.NONE 
+                    activeDialog.value = SettingsDialog.None 
                 }
             )
         }
-        SettingsDialog.NONE -> { /* No dialog */ }
+        is SettingsDialog.PasswordExport -> {
+            PasswordDialog(
+                title = "Encrypt Export",
+                subtitle = "Set a secure password. You will need it to import this data.",
+                buttonText = "Encrypt & Save",
+                onDismiss = { activeDialog.value = SettingsDialog.None },
+                onSubmit = { password ->
+                    viewModel.exportToOfflineBackup(context, dialog.targetUri, password)
+                    activeDialog.value = SettingsDialog.None
+                }
+            )
+        }
+        is SettingsDialog.PasswordImport -> {
+            PasswordDialog(
+                title = "Decrypt Offline Data",
+                subtitle = "Enter the password used to encrypt this .planora backup.",
+                buttonText = "Decrypt & Restore",
+                onDismiss = { activeDialog.value = SettingsDialog.None },
+                onSubmit = { password ->
+                    viewModel.importFromOfflineBackup(context, dialog.sourceUri, password)
+                    activeDialog.value = SettingsDialog.None
+                }
+            )
+        }
+        SettingsDialog.None -> { /* No dialog */ }
     }
 
     Column(
@@ -211,7 +256,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { activeDialog.value = SettingsDialog.NAME }
+                    .clickable { activeDialog.value = SettingsDialog.Name }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -345,7 +390,38 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 SettingsRow(
                     R.drawable.ic_attach_money, IncomeGreen,
                     "Currency Symbol", "Currently: ${state.currencySymbol}",
-                    SettingsRowType.Click { activeDialog.value = SettingsDialog.CURRENCY }
+                    SettingsRowType.Click { activeDialog.value = SettingsDialog.Currency }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Backup & Restore
+        SectionLabel("Backup & Restore")
+        PlanoraCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column {
+                SettingsRow(
+                    iconRes = R.drawable.ic_arrow_upward,
+                    iconBg = MaterialTheme.colorScheme.tertiary,
+                    title = "Export Local Backup",
+                    subtitle = "Save a secure standalone .planora file",
+                    type = SettingsRowType.Click { 
+                        val hash = java.util.UUID.randomUUID().toString().substring(0, 8)
+                        offlineExportLauncher.launch("planora_bkp_$hash.planora") 
+                    }
+                )
+                SettingsDivider()
+                SettingsRow(
+                    iconRes = R.drawable.ic_arrow_downward,
+                    iconBg = MaterialTheme.colorScheme.error,
+                    title = "Import Local Backup",
+                    subtitle = "Restore an encrypted .planora file",
+                    type = SettingsRowType.Click { offlineImportLauncher.launch(arrayOf("application/x-planora", "*/*")) }
                 )
             }
         }
@@ -463,6 +539,43 @@ private fun CurrencyDialog(current: String, onDismiss: () -> Unit, onSave: (Stri
             }
         },
         confirmButton = { Button(onClick = { onSave(symbol) }) { Text("Save") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
+
+@Composable
+private fun PasswordDialog(
+    title: String,
+    subtitle: String,
+    buttonText: String,
+    onDismiss: () -> Unit,
+    onSubmit: (CharArray) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(16.dp))
+                PlanoraTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Encryption Password",
+                    placeholder = "Enter password",
+                    leadingIcon = { Icon(Icons.Default.Lock, null, modifier = Modifier.size(20.dp)) }
+                )
+            }
+        },
+        confirmButton = { 
+            Button(
+                onClick = { onSubmit(password.toCharArray()) }, 
+                enabled = password.isNotBlank()
+            ) { Text(buttonText) } 
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }

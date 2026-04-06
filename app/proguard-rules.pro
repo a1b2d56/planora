@@ -16,7 +16,7 @@
     @dagger.hilt.android.lifecycle.HiltViewModel <init>(...);
 }
 
-# SQLCipher
+# noinspection ExpensiveKeepRuleInspection
 -keep class net.zetetic.database.** { *; }
 -dontwarn net.zetetic.**
 
@@ -26,7 +26,7 @@
 # Google Error Prone annotations (referenced by Tink, not needed at runtime)
 -dontwarn com.google.errorprone.annotations.**
 
-# Google Tink crypto library
+# noinspection ExpensiveKeepRuleInspection
 -keep class com.google.crypto.tink.** { *; }
 -dontwarn com.google.crypto.tink.**
 
@@ -62,9 +62,8 @@
 -keep class com.google.api.client.json.** { <fields>; <methods>; }
 -keep class com.google.api.client.util.** { <fields>; <methods>; }
 
-#noinspection ExpensiveKeepRuleInspection
--keep class com.google.auth.oauth2.** { *; }
--keep class com.google.auth.http.** { *; }
+-keep class com.google.auth.oauth2.** { *; } # noinspection ExpensiveKeepRuleInspection
+-keep class com.google.auth.http.** { *; } # noinspection ExpensiveKeepRuleInspection
 -dontwarn com.google.auth.**
 
 
