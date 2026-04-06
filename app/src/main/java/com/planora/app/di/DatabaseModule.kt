@@ -2,9 +2,9 @@
 
 import android.content.Context
 import androidx.room.Room
-import com.planora.app.data.database.DatabaseKeyManager
-import com.planora.app.data.database.PlanoraDatabase
-import com.planora.app.data.database.dao.*
+import com.planora.app.core.data.database.DatabaseKeyManager
+import com.planora.app.core.data.database.PlanoraDatabase
+import com.planora.app.core.data.database.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,13 +1,13 @@
 # ── Planora ProGuard / R8 rules ──────────────────────────────────────────────
 
 # Keep all Room entities, DAOs, and database class
--keep class com.planora.app.data.database.** { *; }
+-keep class com.planora.app.core.data.database.** { *; }
 -keep @androidx.room.Entity class * { *; }
 -keepclassmembers @androidx.room.Entity class * { *; }
 -keep class * extends androidx.room.RoomDatabase { *; }
 
 # Keep workers and their constructors
--keep class com.planora.app.workers.** { *; }
+-keep class com.planora.app.core.worker.** { *; }
 
 # Keep Hilt-generated components
 -keep class dagger.hilt.android.internal.** { *; }
@@ -36,7 +36,7 @@
 -keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations
 
 # Keep enum names used by Room TypeConverters
--keepclassmembers enum com.planora.app.data.database.entities.** { *; }
+-keepclassmembers enum com.planora.app.core.data.database.entities.** { *; }
 
 # Coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
@@ -62,9 +62,11 @@
 -keep class com.google.api.client.json.** { <fields>; <methods>; }
 -keep class com.google.api.client.util.** { <fields>; <methods>; }
 
-# Google Auth Library (used for Drive access token credentials)
--keep class com.google.auth.** { *; }
+#noinspection ExpensiveKeepRuleInspection
+-keep class com.google.auth.oauth2.** { *; }
+-keep class com.google.auth.http.** { *; }
 -dontwarn com.google.auth.**
+
 
 -dontwarn com.google.api.client.**
 -dontwarn com.google.api.services.drive.**
@@ -84,9 +86,9 @@
 
 # ── Planora Cloud Sync Data Models ──────────────────────────────────────────
 # We MUST keep these names because Gson uses them for JSON serialization!
--keep class com.planora.app.data.backup.CloudSyncData { *; }
--keep class com.planora.app.data.backup.SyncPreferences { *; }
--keep class com.planora.app.data.database.entities.** { *; }
+-keep class com.planora.app.core.data.backup.CloudSyncData { *; }
+-keep class com.planora.app.core.data.backup.SyncPreferences { *; }
+-keep class com.planora.app.core.data.database.entities.** { *; }
 
 # ── Modern Identity & Credentials ──────────────────────────────────────────
 # Only keep the specific classes we use via reflection / createFrom()

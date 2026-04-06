@@ -19,18 +19,18 @@ import androidx.compose.ui.unit.*
 import androidx.navigation.*
 import androidx.navigation.compose.*
 import com.planora.app.R
-import com.planora.app.ui.screens.calendar.CalendarScreen
-import com.planora.app.ui.screens.dashboard.DashboardScreen
-import com.planora.app.ui.screens.money.AddTransactionScreen
-import com.planora.app.ui.screens.money.MoneyScreen
-import com.planora.app.ui.screens.notes.NoteEditorScreen
-import com.planora.app.ui.screens.notes.NotesScreen
-import com.planora.app.ui.screens.savings.SavingsScreen
-import com.planora.app.ui.screens.settings.SettingsScreen
-import com.planora.app.ui.screens.tasks.AddEditTaskScreen
-import com.planora.app.ui.screens.tasks.TasksScreen
-import com.planora.app.ui.screens.welcome.WelcomeScreen
-import com.planora.app.utils.PrefsManager
+import com.planora.app.feature.calendar.CalendarScreen
+import com.planora.app.feature.dashboard.DashboardScreen
+import com.planora.app.feature.money.AddTransactionScreen
+import com.planora.app.feature.money.MoneyScreen
+import com.planora.app.feature.notes.NoteEditorScreen
+import com.planora.app.feature.notes.NotesScreen
+import com.planora.app.feature.savings.SavingsScreen
+import com.planora.app.feature.settings.SettingsScreen
+import com.planora.app.feature.tasks.AddEditTaskScreen
+import com.planora.app.feature.tasks.TasksScreen
+import com.planora.app.feature.welcome.WelcomeScreen
+import com.planora.app.core.utils.PrefsManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -172,7 +172,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
                 navArgument("date") { type = NavType.LongType; defaultValue = -1L }
             )
         ) { back ->
-            com.planora.app.ui.screens.calendar.AddEditEventScreen(
+            com.planora.app.feature.calendar.AddEditEventScreen(
                 eventId = back.arguments?.getLong("eventId").takeIf { it != -1L },
                 selectedDate = back.arguments?.getLong("date").takeIf { it != -1L },
                 onBack = { navController.popBackStack() }
@@ -181,7 +181,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
         composable(Screen.AddEditGoal.route,
             arguments = listOf(navArgument("goalId") { type = NavType.LongType; defaultValue = -1L })
         ) { back ->
-            com.planora.app.ui.screens.savings.AddEditGoalScreen(
+            com.planora.app.feature.savings.AddEditGoalScreen(
                 goalId = back.arguments?.getLong("goalId").takeIf { it != -1L },
                 onBack = { navController.popBackStack() }
             )

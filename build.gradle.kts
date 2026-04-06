@@ -6,3 +6,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.20"        apply false
     id("com.google.gms.google-services")      version "4.4.4"         apply false
 }
+
+// Hook into the native 'clean' task triggered by Android Studio
+tasks.register("clean", Delete::class) {
+    delete(rootProject.layout.buildDirectory)
+    
+    // Custom paths to auto-clean
+    delete("app/release")
+}

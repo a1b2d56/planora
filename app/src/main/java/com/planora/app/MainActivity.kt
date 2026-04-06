@@ -1,4 +1,4 @@
-﻿package com.planora.app
+package com.planora.app
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -17,15 +17,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.planora.app.navigation.PlanoraNavGraph
-import com.planora.app.theme.AppTheme
-import com.planora.app.theme.PlanoraTheme
-import com.planora.app.utils.PrefsManager
+import com.planora.app.core.ui.theme.AppTheme
+import com.planora.app.core.ui.theme.PlanoraTheme
+import com.planora.app.core.utils.PrefsManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
-@Suppress("unused")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 

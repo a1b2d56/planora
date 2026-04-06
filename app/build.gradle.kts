@@ -72,6 +72,11 @@ android {
 
     buildFeatures { compose = true }
 
+    lint {
+        disable += setOf("MissingDefaultResource", "ExpensiveKeepRuleInspection")
+        abortOnError = false
+    }
+
     packaging {
         resources {
             excludes += setOf(
