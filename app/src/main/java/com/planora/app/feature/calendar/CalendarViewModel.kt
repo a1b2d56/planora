@@ -58,7 +58,7 @@ class CalendarViewModel @Inject constructor(
     fun selectDate(date: Long) { _selectedDate.value = date }
 
     private fun navigateMonth(offset: Int) {
-        // Use java.time  --  no Calendar needed
+        // Use java.time
         val current = java.time.Instant.ofEpochMilli(_currentMonthYear.value).atZone(zone).toLocalDate()
         val next    = current.plusMonths(offset.toLong()).withDayOfMonth(1)
         val millis  = next.atStartOfDay(zone).toInstant().toEpochMilli()

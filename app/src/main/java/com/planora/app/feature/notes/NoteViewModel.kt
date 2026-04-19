@@ -23,10 +23,9 @@ class NoteViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<NoteUiState> = _searchQuery
-        .debounce { if (it.isBlank()) 0L else 300L }  // skip DB round-trip on every keystroke
+        .debounce { if (it.isBlank()) 0L else 300L }
         .distinctUntilChanged()
         .flatMapLatest { query ->
-        // Capture query in lambda scope  --  fixes race condition where .value could differ
         val source = if (query.isBlank()) repository.getAllNotes() else repository.searchNotes(query)
         source.map { NoteUiState(notes = it, searchQuery = query) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NoteUiState())

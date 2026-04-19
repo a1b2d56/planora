@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.ui.components.richtext
+package com.planora.app.core.ui.components.richtext
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +26,7 @@ fun RichTextEditor(
 ) {
     val value = state.toTextFieldValue(textColor)
     val textStyle = remember(textColor) {
-        // lineHeight and color are the only non-default customizations  --  memoize the whole style
+        // Memoize the customized style
         androidx.compose.ui.text.TextStyle(
             color = textColor,
             fontSize = 16.sp,

@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.ui.components
+package com.planora.app.core.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -37,7 +37,7 @@ fun SpendingDonutChart(
 ) {
     if (categorySpending.isEmpty()) return
 
-    // Stable derived value  --  only recomputed when the map content changes
+    // Stable derived value
     val sorted = remember(categorySpending) {
         val all = categorySpending.entries.sortedByDescending { it.value }
         if (all.size <= 8) {

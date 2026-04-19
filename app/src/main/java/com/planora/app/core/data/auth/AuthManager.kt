@@ -50,7 +50,7 @@ class AuthManager @Inject constructor(
         return com.google.android.libraries.identity.googleid.GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(onlyFilterAuthorized)
             .setServerClientId(webClientId)
-            .setAutoSelectEnabled(true)
+            .setAutoSelectEnabled(false) // Never skip the UI choice
             .build()
     }
 
@@ -65,26 +65,17 @@ class AuthManager @Inject constructor(
      * Handles optimized "fast path" for returning users.
      */
     suspend fun getGoogleIdCredential(activity: Activity): GoogleIdTokenCredential? {
-        val fastOption = getGoogleIdOption(onlyFilterAuthorized = true)
-        val fastRequest = GetCredentialRequest.Builder()
-            .addCredentialOption(fastOption)
+        // Force the full picker every time as requested to ensure consideration for all accounts
+        val fullOption = getGoogleIdOption(onlyFilterAuthorized = false)
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(fullOption)
             .build()
         
         return try {
-            val result = credentialManager.getCredential(activity, fastRequest)
+            val result = credentialManager.getCredential(activity, request)
             processCredentialResult(result)
-        } catch (e: NoCredentialException) {
-            val fullOption = getGoogleIdOption(onlyFilterAuthorized = false)
-            val fullRequest = GetCredentialRequest.Builder()
-                .addCredentialOption(fullOption)
-                .build()
-            try {
-                val result = credentialManager.getCredential(activity, fullRequest)
-                processCredentialResult(result)
-            } catch (e2: Exception) {
-                null
-            }
         } catch (e: Exception) {
+            Log.e("AuthManager", "Credential request failed: ${e.message}")
             null
         }
     }

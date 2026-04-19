@@ -32,9 +32,7 @@ object DatabaseModule {
         val passphrase = keyManager.getPassphrase()
         val dbFile = context.getDatabasePath("Planora_db")
         
-        // --- SAFE OPEN DIAGNOSTIC ---
-        // If the OS restored the DB file but the Keystore was reset, SQLCipher will throw.
-        // We catch it and aggressively wipe the mismatched DB so the app doesn't crash permanently.
+        // Wipe DB if SQLCipher key mismatches to prevent crash loops
         if (dbFile.exists()) {
             try {
                 val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase(
@@ -61,7 +59,7 @@ object DatabaseModule {
             .build()
     }
 
-    // DAOs  --  @Singleton ensures one instance per app lifetime
+    // DAOs
     @Suppress("unused") @Provides @Singleton fun provideTaskDao(db: PlanoraDatabase): TaskDao                   = db.taskDao()
     @Suppress("unused") @Provides @Singleton fun provideTransactionDao(db: PlanoraDatabase): TransactionDao     = db.transactionDao()
     @Suppress("unused") @Provides @Singleton fun provideSavingsGoalDao(db: PlanoraDatabase): SavingsGoalDao     = db.savingsGoalDao()

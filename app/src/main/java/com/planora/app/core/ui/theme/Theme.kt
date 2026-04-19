@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.ui.theme
+package com.planora.app.core.ui.theme
 
 import android.app.Activity
 import androidx.compose.material3.*
@@ -11,8 +11,7 @@ import androidx.core.view.WindowCompat
 
 enum class AppTheme { LIGHT, DARK, MIDNIGHT }
 
-// Fallback palette  --  used only on AVDs or custom ROMs that strip the Monet overlay.
-// Teal/green to match the Planora brand identity.
+// Fallback palette
 private val FallbackLightScheme = lightColorScheme(
     primary             = Color(0xFF006A60),
     onPrimary           = Color(0xFFFFFFFF),
@@ -44,21 +43,14 @@ fun PlanoraTheme(
 ) {
     val context = LocalContext.current
 
-    // minSdk = 34 (Android 14 / API 34 >= S/API 31).
-    // dynamicLightColorScheme / dynamicDarkColorScheme read android.R.color.system_accent1_*
-    // resources that the OS populates from the user's wallpaper via the Monet engine.
-    // No API-level guard is needed  --  these APIs are unconditionally safe on minSdk 34.
-    // Fallback schemes are only reached if the OS did not populate the Monet overlay
-    // (stock AVDs, some custom ROMs with wallpaper engine disabled).
+    // minSdk = 34 (Android 14) implies dynamic color support.
     val baseScheme = when (appTheme) {
         AppTheme.LIGHT    -> try { dynamicLightColorScheme(context) } catch (_: Exception) { FallbackLightScheme }
         AppTheme.DARK,
         AppTheme.MIDNIGHT -> try { dynamicDarkColorScheme(context)  } catch (_: Exception) { FallbackDarkScheme  }
     }
 
-    // Midnight: warp surface/background to true-black for OLED efficiency.
-    // Primary / secondary / tertiary still come from the dynamic wallpaper palette above  -- 
-    // only the neutral surface tokens are overridden here.
+    // Midnight overrides surface/background neutrally while inheriting monet colors.
     val colorScheme = if (appTheme == AppTheme.MIDNIGHT) {
         baseScheme.copy(
             background           = Color(0xFF000000),

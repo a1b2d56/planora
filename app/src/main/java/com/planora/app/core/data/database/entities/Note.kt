@@ -1,9 +1,9 @@
-﻿package com.planora.app.core.data.database.entities
+package com.planora.app.core.data.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// Note color options (hex, display name)  --  dark-first palette for AMOLED
+// Note color options (hex, display name)
 val NOTE_COLORS = listOf(
     "#000000" to "Default",
     "#2D2000" to "Yellow",
@@ -22,6 +22,7 @@ data class Note(
     val isPinned: Boolean = false,
     val color: String = "#000000",   // True AMOLED Black
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
-    // tags removed  --  was never read or written anywhere
+    val updatedAt: Long = System.currentTimeMillis(),
+    val handwritingData: String? = null,  // Serialized JSON of stroke data
+    val paperType: String = "PLAIN"       // PLAIN, DOTTED, or GRID
 )

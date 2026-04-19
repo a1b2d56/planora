@@ -25,8 +25,8 @@ android {
         applicationId = "com.planora.app"
         minSdk        = 34
         targetSdk     = 36
-        versionCode   = 128
-        versionName   = "1.7.2-beta"
+        versionCode   = 129
+        versionName   = "1.8-beta"
         vectorDrawables { useSupportLibrary = true }
     }
 
@@ -175,11 +175,11 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
 
     // Firebase & Auth
-    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
     implementation("com.google.firebase:firebase-auth")
     // Google Identity & Credential Manager
-    implementation("androidx.credentials:credentials:1.5.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.2.0")
     implementation("com.google.android.gms:play-services-auth:21.5.1")
 
@@ -192,4 +192,7 @@ dependencies {
         exclude(group = "org.apache.httpcomponents")
     }
     implementation("com.google.auth:google-auth-library-oauth2-http:1.43.0")
+    
+    // JSON Serialization
+    implementation("com.google.code.gson:gson:2.13.2")
 }

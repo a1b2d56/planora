@@ -1,4 +1,4 @@
-﻿package com.planora.app.navigation
+package com.planora.app.navigation
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.*
@@ -34,10 +34,10 @@ import com.planora.app.core.utils.PrefsManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// Routes and Destinations
+
 sealed class Screen(val route: String) {
     data object Welcome    : Screen("welcome")
-    data object Main       : Screen("main")       // hosts the swipeable pager
+    data object Main       : Screen("main")
     data object Dashboard  : Screen("dashboard")
     data object Tasks      : Screen("tasks")
     data object Money      : Screen("money")
@@ -67,8 +67,7 @@ sealed class Screen(val route: String) {
     }
 }
 
-// Swipeable pages configuration  --  order matches the navbar left→right
-// Dashboard(0) Â· Tasks(1) Â· Money(2) Â· Savings(3) Â· Calendar(4) Â· Notes(5)
+
 private val ScrimColor = Color.Black.copy(alpha = 0.5f)
 
 private val swipePages = listOf(
@@ -79,10 +78,9 @@ private val swipePages = listOf(
     Screen.Calendar,
     Screen.Notes
 )
-// O(1) lookup  --  avoids linear scan on every nav-bar tap
 private val swipePageIndex: Map<Screen, Int> = swipePages.withIndex().associate { (i, s) -> s to i }
 
-// Navbar items  --  Dashboard intentionally excluded from pills
+
 data class NavItem(val screen: Screen, val label: String, @param:DrawableRes val icon: Int)
 
 val navItems = listOf(
@@ -93,7 +91,7 @@ val navItems = listOf(
     NavItem(Screen.Notes,    "Notes",    R.drawable.ic_sticky_note)
 )
 
-// Main Navigation Entry
+
 @Composable
 fun PlanoraNavGraph(prefsManager: PrefsManager) {
     val navController = rememberNavController()
@@ -109,13 +107,11 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
         return
     }
 
-    // NavHost only handles non-swipeable destinations.
-    // The pager lives inside Screen.Main and handles all tab-level navigation.
+
     NavHost(
         navController    = navController,
         startDestination = startDest!!,
         modifier         = Modifier.fillMaxSize(),
-        // scaleIn/Out is GPU-only (graphicsLayer); slideInVertically forces a layout pass every frame
         enterTransition    = { fadeIn(tween(260)) + scaleIn(tween(260), initialScale = 0.94f) + slideInVertically(tween(260)) { it / 24 } },
         exitTransition     = { fadeOut(tween(200)) },
         popEnterTransition = { fadeIn(tween(260)) + scaleIn(tween(260), initialScale = 0.94f) },
@@ -133,7 +129,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
             })
         }
 
-        // Main pager host component
+
         composable(Screen.Main.route) {
             MainPagerHost(
                 onNavigateToAddTask          = { navController.navigate(Screen.AddEditTask.createRoute()) },
@@ -149,7 +145,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
             )
         }
 
-        // Detail / editor screens
+
         composable(Screen.AddEditTask.route,
             arguments = listOf(navArgument("taskId") { type = NavType.LongType; defaultValue = -1L })
         ) { back ->
@@ -198,7 +194,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
     }
 }
 
-// Pager host  --  handles swipeable pages, navigation UI, and sidebar
+
 @Composable
 private fun MainPagerHost(
     onNavigateToAddTask: () -> Unit,
@@ -218,7 +214,6 @@ private fun MainPagerHost(
 
     val currentPageIndex = pagerState.currentPage
 
-    // Stable lambda: captures only remembered objects, not recreated on every recompose
     val navigateToPage: (Int) -> Unit = remember(scope, pagerState) {
         { index -> scope.launch { pagerState.animateScrollToPage(index) } }
     }
@@ -230,7 +225,7 @@ private fun MainPagerHost(
             state            = pagerState,
             modifier         = Modifier.fillMaxSize(),
             userScrollEnabled = true,
-            beyondViewportPageCount = 0   // compose only the visible page; adjacent pages resume from state on swipe
+            beyondViewportPageCount = 0
         ) { page ->
             when (swipePages[page]) {
                 Screen.Dashboard -> DashboardScreen(
@@ -330,7 +325,6 @@ fun FloatingNavBar(
                     modifier = Modifier.weight(1f)
                 )
                 items.forEachIndexed { i, item ->
-                    // navItems start at Tasks = page 1, so offset by 1
                     val pageIndex = i + 1
                     NavPill(
                         iconRes  = item.icon,
@@ -423,7 +417,7 @@ private fun Sidebar(
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
-            // Dashboard (page 0)
+
             SidebarItem(R.drawable.ic_dashboard, "Dashboard", currentPage == 0) { onNavigateToPage(0) }
 
             Spacer(Modifier.height(4.dp))
@@ -431,7 +425,7 @@ private fun Sidebar(
                 color    = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
 
-            // Tab pages (pages 1—5)
+
             navItems.forEachIndexed { i, item ->
                 SidebarItem(item.icon, item.label, currentPage == i + 1) { onNavigateToPage(i + 1) }
             }

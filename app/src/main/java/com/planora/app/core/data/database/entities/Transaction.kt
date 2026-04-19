@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.data.database.entities
+package com.planora.app.core.data.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -18,5 +18,5 @@ data class Transaction(
     val note: String = "",
     val date: Long = System.currentTimeMillis(),
     val linkedSavingsGoalId: Long? = null
-    // createdAt removed  --  never read or used anywhere; date serves as the record timestamp
+    // createdAt removed
 )

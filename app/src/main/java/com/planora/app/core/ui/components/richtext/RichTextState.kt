@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.ui.components.richtext
+package com.planora.app.core.ui.components.richtext
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -24,7 +24,7 @@ enum class SpanType { Bold, Italic, Strikethrough, Heading1, Heading2, BulletLis
 data class RichSpan(val start: Int, val end: Int, val type: SpanType)
 
 /**
- * Core rich text state engine  --  rewritten for correctness.
+ * Core rich text state engine.
  *
  * Key design: user-toggled styles are STICKY and separate from cursor-derived styles.
  * This prevents bold/italic from being lost on subsequent keystrokes.
@@ -35,14 +35,14 @@ class RichTextState {
         private set
 
     private val _spans = mutableStateListOf<RichSpan>()
-    // User-toggled styles  --  sticky until explicitly toggled off.
+    // User-toggled styles
     // These are NOT cleared on cursor movement or text change.
     private val _userToggledStyles = mutableSetOf<SpanType>()
 
     // Whether the user has explicitly toggled styles since last cursor move
     private var _hasUserToggle = false
 
-    // Observable version counter  --  incremented on any style change to trigger recomposition
+    // Observable version counter
     private var _styleVersion by mutableIntStateOf(0)
 
     var selection by mutableStateOf(TextRange(0))
@@ -302,18 +302,18 @@ class RichTextState {
 
         when {
             editEnd <= s -> {
-                // Edit entirely before span  --  shift both
+                // Edit entirely before span
                 s += delta; e += delta
             }
             editStart >= e -> {
-                // Edit entirely after span  --  no change
+                // Edit entirely after span
             }
             editStart <= s && editEnd >= e -> {
-                // Edit engulfs span  --  remove
+                // Edit engulfs span
                 return null
             }
             editStart >= s && editEnd <= e -> {
-                // Edit within span  --  grow/shrink end
+                // Edit within span
                 e += delta
             }
             editStart < s -> {

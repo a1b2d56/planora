@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.data.database
+package com.planora.app.core.data.database
 
 import androidx.room.*
 import com.planora.app.core.data.database.dao.CalendarEventDao
@@ -32,7 +32,7 @@ class Converters {
 
 @Database(
     entities = [Task::class, Transaction::class, SavingsGoal::class, CalendarEvent::class, Note::class],
-    version = 4,   // added Transaction.linkedSavingsGoalId
+    version = 5,   // added handwritingData + paperType to Note
     exportSchema = false
 )
 @TypeConverters(Converters::class)

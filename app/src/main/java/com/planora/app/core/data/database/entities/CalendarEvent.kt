@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.data.database.entities
+package com.planora.app.core.data.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -22,5 +22,5 @@ data class CalendarEvent(
     val isAllDay: Boolean = false,
     val isYearly: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
-    // reminderMinutes removed  --  stored but never read or acted upon
+    // reminderMinutes removed
 )
