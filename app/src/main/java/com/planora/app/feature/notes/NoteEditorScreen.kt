@@ -29,6 +29,7 @@ import com.planora.app.core.ui.components.richtext.RichTextEditor
 import com.planora.app.core.ui.components.richtext.RichTextState
 import com.planora.app.feature.notes.handwriting.*
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -57,7 +58,7 @@ fun NoteEditorScreen(
     var handwritingDataRaw by remember { mutableStateOf<String?>(null) }
     
     var penType by remember { mutableStateOf(PenType.PEN) }
-    var penWidth by remember { mutableStateOf(8f) }
+    var penWidth by remember { mutableFloatStateOf(8f) }
     var handwritingColor by remember { mutableStateOf(Color.Black) }
     var paperType by remember { mutableStateOf(PaperType.PLAIN) }
     
@@ -147,7 +148,7 @@ fun NoteEditorScreen(
                                     showDropdown = false
                                     scope.launch {
                                         isSharing = true
-                                        kotlinx.coroutines.delay(100)
+                                        delay(100)
                                         try {
                                             val fullBitmap = android.graphics.Bitmap.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
                                             val fullCanvas = android.graphics.Canvas(fullBitmap)
@@ -166,7 +167,6 @@ fun NoteEditorScreen(
                                             } else fullBitmap
 
                                             val finalBitmap = croppedBitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
-                                            val finalCanvas = android.graphics.Canvas(finalBitmap)
                                             
                                             val strokes = handwritingViewRef?.getStrokes() ?: emptyList()
                                             var minX = finalBitmap.width.toFloat()
@@ -362,8 +362,6 @@ fun NoteEditorScreen(
                         canUndo = handwritingViewRef?.canUndo == true
                         canRedo = handwritingViewRef?.canRedo == true
                     },
-                    paperType = paperType,
-                    onPaperTypeChange = { paperType = it },
                     modifier = Modifier.navigationBarsPadding()
                 )
             }

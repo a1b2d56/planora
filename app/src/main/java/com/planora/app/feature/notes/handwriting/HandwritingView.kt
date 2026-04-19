@@ -5,9 +5,9 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.graphics.createBitmap
 import kotlin.math.hypot
 import kotlin.math.max
-import kotlin.math.min
 
 /** Canvas-based freehand drawing view with velocity-aware stroke rendering. */
 class HandwritingView @JvmOverloads constructor(
@@ -54,15 +54,18 @@ class HandwritingView @JvmOverloads constructor(
         strokeWidth = 1f
     }
 
-    private val eraserPaint = Paint().apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+    private val eraserPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
-        isAntiAlias = true
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
-
+    private val eraserIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        color = Color.DKGRAY
+        alpha = 150
+    }
 
     private var eraserX: Float? = null
     private var eraserY: Float? = null
@@ -122,17 +125,13 @@ class HandwritingView @JvmOverloads constructor(
         return super.onTouchEvent(event)
     }
 
-
-
+    @android.annotation.SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-
         drawPaperBackground(canvas)
 
-
         cacheBitmap?.let { canvas.drawBitmap(it, 0f, 0f, null) }
-
 
         if (activePoints.size > 1) {
             val activeStroke = DrawStroke(
@@ -145,27 +144,22 @@ class HandwritingView @JvmOverloads constructor(
             renderStroke(canvas, activeStroke)
         }
 
-
         val ex = eraserX
         val ey = eraserY
         if (penType == PenType.ERASER && ex != null && ey != null) {
             val density = resources.displayMetrics.density
             val r = penWidth * 3f / 2f
             
-            val eraserIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                color = Color.DKGRAY
-                strokeWidth = 2f * density
-                alpha = 150
-            }
+            eraserIndicatorPaint.strokeWidth = 2f * density
             canvas.drawCircle(ex, ey, r, eraserIndicatorPaint)
             
             eraserIndicatorPaint.color = Color.WHITE
             eraserIndicatorPaint.strokeWidth = 1f * density
             canvas.drawCircle(ex, ey, r, eraserIndicatorPaint)
+            
+            eraserIndicatorPaint.color = Color.DKGRAY
         }
     }
-
 
     private fun renderStroke(canvas: Canvas, stroke: DrawStroke) {
         if (stroke.points.size < 2) return
@@ -328,7 +322,7 @@ class HandwritingView @JvmOverloads constructor(
         if (cacheBitmap == null || cacheBitmap!!.width != width || cacheBitmap!!.height != height) {
             cacheBitmap?.recycle()
             if (width > 0 && height > 0) {
-                cacheBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                cacheBitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 cacheCanvas = Canvas(cacheBitmap!!)
                 rebakeAllStrokes()
             }
@@ -405,7 +399,6 @@ class HandwritingView @JvmOverloads constructor(
 
     val canUndo: Boolean get() = strokes.isNotEmpty()
     val canRedo: Boolean get() = undoStack.isNotEmpty()
-    val hasContent: Boolean get() = strokes.isNotEmpty()
 
     fun getStrokes(): List<DrawStroke> = strokes.toList()
 

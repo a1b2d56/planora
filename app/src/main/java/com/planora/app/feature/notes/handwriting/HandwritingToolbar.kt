@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.planora.app.R
@@ -41,9 +40,7 @@ fun HandwritingToolbar(
     canUndo: Boolean,
     canRedo: Boolean,
     onUndo: () -> Unit,
-    onRedo: () -> Unit,
-    paperType: PaperType,
-    onPaperTypeChange: (PaperType) -> Unit
+    onRedo: () -> Unit
 ) {
     var showColorPicker by remember { mutableStateOf(false) }
     var showWidthPicker by remember { mutableStateOf(false) }

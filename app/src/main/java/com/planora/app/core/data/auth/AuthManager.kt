@@ -7,7 +7,6 @@ import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.CustomCredential
-import androidx.credentials.exceptions.NoCredentialException
 import com.planora.app.R
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
@@ -74,8 +73,11 @@ class AuthManager @Inject constructor(
         return try {
             val result = credentialManager.getCredential(activity, request)
             processCredentialResult(result)
-        } catch (e: Exception) {
+        } catch (e: androidx.credentials.exceptions.GetCredentialException) {
             Log.e("AuthManager", "Credential request failed: ${e.message}")
+            null
+        } catch (e: Exception) {
+            Log.e("AuthManager", "Unexpected error: ${e.message}")
             null
         }
     }

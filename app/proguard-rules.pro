@@ -1,4 +1,4 @@
-# ── Planora ProGuard / R8 rules ──────────────────────────────────────────────
+# Planora ProGuard / R8 rules
 
 # Keep all Room entities, DAOs, and database class
 -keep class com.planora.app.core.data.database.** { *; }
@@ -50,7 +50,7 @@
     public static int i(...);
 }
 
-# ── Google Drive API & Client Libraries ─────────────────────────────────────
+# Google Drive API & Client Libraries
 # Targeted keeps for reduced scope and better obfuscation
 -keepclassmembers class * {
   @com.google.api.client.util.Key <fields>;
@@ -62,8 +62,8 @@
 -keep class com.google.api.client.json.** { <fields>; <methods>; }
 -keep class com.google.api.client.util.** { <fields>; <methods>; }
 
--keep class com.google.auth.oauth2.** { *; } # noinspection ExpensiveKeepRuleInspection
--keep class com.google.auth.http.** { *; } # noinspection ExpensiveKeepRuleInspection
+-keep class com.google.auth.oauth2.** { <fields>; <methods>; }
+-keep class com.google.auth.http.** { <fields>; <methods>; }
 -dontwarn com.google.auth.**
 
 
@@ -71,7 +71,7 @@
 -dontwarn com.google.api.services.drive.**
 -dontwarn sun.misc.Unsafe
 
-# ── Gson ───────────────────────────────────────────────────────────────────
+# Gson
 # Standard GSON rules to avoid broad blanket keep
 -keep class com.google.gson.reflect.TypeToken
 -keep class * extends com.google.gson.TypeAdapter
@@ -83,13 +83,13 @@
 -keepattributes *Annotation*
 -dontwarn sun.misc.Unsafe
 
-# ── Planora Cloud Sync Data Models ──────────────────────────────────────────
+# Planora Cloud Sync Data Models
 # We MUST keep these names because Gson uses them for JSON serialization!
 -keep class com.planora.app.core.data.backup.CloudSyncData { *; }
 -keep class com.planora.app.core.data.backup.SyncPreferences { *; }
 -keep class com.planora.app.core.data.database.entities.** { *; }
 
-# ── Modern Identity & Credentials ──────────────────────────────────────────
+# Modern Identity & Credentials
 # Only keep the specific classes we use via reflection / createFrom()
 -keep class com.google.android.libraries.identity.googleid.** { *; }
 -keep class com.google.android.gms.auth.api.identity.** { *; }
