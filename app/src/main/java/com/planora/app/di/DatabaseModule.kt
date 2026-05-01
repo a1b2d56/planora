@@ -3,6 +3,7 @@ package com.planora.app.di
 import android.content.Context
 import androidx.room.Room
 import com.planora.app.core.data.database.DatabaseKeyManager
+import com.planora.app.core.data.database.MIGRATION_5_6
 import com.planora.app.core.data.database.PlanoraDatabase
 import com.planora.app.core.data.database.dao.*
 import dagger.Module
@@ -28,11 +29,10 @@ object DatabaseModule {
         keyManager: DatabaseKeyManager
     ): PlanoraDatabase {
         System.loadLibrary("sqlcipher")
-        
+
         val passphrase = keyManager.getPassphrase()
         val dbFile = context.getDatabasePath("Planora_db")
-        
-        // Wipe DB if SQLCipher key mismatches to prevent crash loops
+
         if (dbFile.exists()) {
             try {
                 val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase(
@@ -44,7 +44,7 @@ object DatabaseModule {
                 )
                 db.close()
             } catch (e: Exception) {
-                android.util.Log.e("SQLCipher", "Failed to open encrypted database! Key mismatch or corrupted. Wiping DB to prevent crash.", e)
+                android.util.Log.e("SQLCipher", "Key mismatch or corrupted DB, wiping.", e)
                 dbFile.delete()
                 context.getDatabasePath("Planora_db-wal").delete()
                 context.getDatabasePath("Planora_db-journal").delete()
@@ -55,14 +55,17 @@ object DatabaseModule {
         val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(context, PlanoraDatabase::class.java, "Planora_db")
             .openHelperFactory(factory)
+            .addMigrations(MIGRATION_5_6)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 
-    // DAOs
     @Suppress("unused") @Provides @Singleton fun provideTaskDao(db: PlanoraDatabase): TaskDao                   = db.taskDao()
     @Suppress("unused") @Provides @Singleton fun provideTransactionDao(db: PlanoraDatabase): TransactionDao     = db.transactionDao()
     @Suppress("unused") @Provides @Singleton fun provideSavingsGoalDao(db: PlanoraDatabase): SavingsGoalDao     = db.savingsGoalDao()
     @Suppress("unused") @Provides @Singleton fun provideCalendarEventDao(db: PlanoraDatabase): CalendarEventDao = db.calendarEventDao()
     @Suppress("unused") @Provides @Singleton fun provideNoteDao(db: PlanoraDatabase): NoteDao                   = db.noteDao()
+    @Suppress("unused") @Provides @Singleton fun provideAccountDao(db: PlanoraDatabase): AccountDao             = db.accountDao()
+    @Suppress("unused") @Provides @Singleton fun provideBudgetDao(db: PlanoraDatabase): BudgetDao               = db.budgetDao()
+    @Suppress("unused") @Provides @Singleton fun provideSyncDao(db: PlanoraDatabase): SyncDao                   = db.syncDao()
 }

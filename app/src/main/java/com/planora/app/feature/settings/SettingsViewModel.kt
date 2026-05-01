@@ -18,13 +18,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SettingsUiState(
-    val appTheme: AppTheme = AppTheme.MIDNIGHT,
+    val appTheme: AppTheme = AppTheme.DARK,
     val notificationsEnabled: Boolean = true,
+    val biometricEnabled: Boolean = false,
     val currencySymbol: String = "$",
     val userName: String = "",
     val userPhotoUrl: String = "",
     val isGoogleSignedIn: Boolean = false,
-    val backupStatus: BackupStatus = BackupStatus.Idle
+    val backupStatus: BackupStatus = BackupStatus.Idle,
+    val navbarPages: Set<String> = setOf("tasks", "money", "savings", "calendar")
 )
 
 sealed class BackupStatus {
@@ -43,6 +45,8 @@ class SettingsViewModel @Inject constructor(
     private val workManager: WorkManager,
     private val cloudBackupManager: CloudBackupManager,
     private val offlineBackupManager: com.planora.app.core.data.backup.OfflineBackupManager,
+    private val transactionRepository: com.planora.app.core.data.repository.TransactionRepository,
+    private val csvExporter: com.planora.app.core.data.export.CsvExporter,
     val authManager: AuthManager,
     private val database: PlanoraDatabase
 ) : ViewModel() {
@@ -70,6 +74,10 @@ class SettingsViewModel @Inject constructor(
             userName = name,
             userPhotoUrl = photo
         )
+    }.combine(prefsManager.biometricEnabled) { state, biometric ->
+        state.copy(biometricEnabled = biometric)
+    }.combine(prefsManager.navbarPages) { state, pages ->
+        state.copy(navbarPages = pages)
     }
 
     // Then combine with dynamic status flows
@@ -90,6 +98,8 @@ class SettingsViewModel @Inject constructor(
     }
     fun setCurrencySymbol(symbol: String)     = viewModelScope.launch { prefsManager.setCurrencySymbol(symbol) }
     fun setUserName(name: String)             = viewModelScope.launch { prefsManager.setUserName(name) }
+    fun setBiometricEnabled(enabled: Boolean) = viewModelScope.launch { prefsManager.setBiometricEnabled(enabled) }
+    fun setNavbarPages(pages: Set<String>)    = viewModelScope.launch { prefsManager.setNavbarPages(pages) }
 
     /** Refreshes UI based on the current Firebase user and stored preferences */
     fun refreshAuthStatus() {
@@ -97,7 +107,11 @@ class SettingsViewModel @Inject constructor(
         if (user != null) {
             viewModelScope.launch {
                 user.photoUrl?.let { prefsManager.setUserPhotoUrl(it.toString()) }
-
+                
+                val currentName = prefsManager.userName.first()
+                if (currentName.isBlank() || currentName == "User") {
+                    user.displayName?.let { if (it.isNotBlank()) prefsManager.setUserName(it) }
+                }
             }
         }
     }
@@ -184,6 +198,30 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /** Exports all transactions to CSV and opens the share sheet */
+    fun exportToCsv(activity: Activity) = viewModelScope.launch {
+        _backupStatus.value = BackupStatus.Loading
+        val transactions = transactionRepository.getAllForExport()
+        
+        if (transactions.isEmpty()) {
+            _backupStatus.value = BackupStatus.Error("No transactions found to export.")
+            return@launch
+        }
+        
+        val uri = csvExporter.exportTransactions(transactions)
+        if (uri != null) {
+            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(android.content.Intent.createChooser(intent, "Export Transactions"))
+            _backupStatus.value = BackupStatus.Success("CSV file generated successfully!")
+        } else {
+            _backupStatus.value = BackupStatus.Error("Failed to generate CSV file.")
+        }
+    }
+
     /** Called after the user grants Drive consent via the system dialog. */
     fun retryPendingCloudOperation(activity: Activity) {
         when (pendingOp) {
@@ -204,10 +242,10 @@ class SettingsViewModel @Inject constructor(
                 // Pre-authorize Drive scope (will show consent if needed)
                 authManager.authorizeDrive(activity)
                 
-                // Capture first name for personal touch if no name exists
-                val firstRunName = googleCredential.displayName?.substringBefore(" ")
-                if (firstRunName != null && (prefsManager.userName.first().isBlank() || prefsManager.userName.first() == "User")) {
-                    prefsManager.setUserName(firstRunName)
+                // Capture full name for personal touch if no name exists
+                val autoName = googleCredential.displayName ?: authManager.currentUser?.displayName
+                if (!autoName.isNullOrBlank() && (prefsManager.userName.first().isBlank() || prefsManager.userName.first() == "User")) {
+                    prefsManager.setUserName(autoName)
                 }
                 
                 refreshAuthStatus()

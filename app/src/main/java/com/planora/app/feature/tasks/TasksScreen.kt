@@ -73,7 +73,7 @@ fun TasksScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 120.dp + navBarPadding)
         ) {
-            /* ── Elevated header: top bar + search + filters ─────────── */
+            /* Elevated header: top bar + search + filters */
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),

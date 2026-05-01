@@ -43,7 +43,7 @@ fun CalendarScreen(
     ) { paddingValues ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 120.dp + navBarPadding)) {
-            /* ── Elevated header: top bar + month nav ────────────── */
+            /* Elevated header: top bar + month nav */
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -52,7 +52,7 @@ fun CalendarScreen(
                     shadowElevation = 0.dp
                 ) {
                     Column {
-                        PlanoraTopBar("Calendar", subtitle = DateUtils.formatMonthYear(uiState.currentMonthYear))
+                        PlanoraTopBar("Events", subtitle = DateUtils.formatMonthYear(uiState.currentMonthYear))
                         CalendarHeader(uiState.currentMonthYear,
                             viewModel::navigateToPreviousMonth, viewModel::navigateToNextMonth)
                         Spacer(Modifier.height(8.dp))

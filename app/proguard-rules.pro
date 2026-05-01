@@ -94,3 +94,9 @@
 -keep class com.google.android.libraries.identity.googleid.** { *; }
 -keep class com.google.android.gms.auth.api.identity.** { *; }
 -dontwarn androidx.credentials.internal.FrameworkImpl
+
+# PDFBox optional dependencies
+-dontwarn com.gemalto.jp2.**
+-dontwarn org.bouncycastle.**
+-dontwarn javax.xml.crypto.**
+-dontwarn java.awt.**

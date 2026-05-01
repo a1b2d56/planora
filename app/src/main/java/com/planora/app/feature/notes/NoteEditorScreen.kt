@@ -1,3 +1,4 @@
+@file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 package com.planora.app.feature.notes
 
 import androidx.compose.animation.*
@@ -150,7 +151,7 @@ fun NoteEditorScreen(
                                         isSharing = true
                                         delay(100)
                                         try {
-                                            val fullBitmap = android.graphics.Bitmap.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
+                                            val fullBitmap = androidx.core.graphics.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
                                             val fullCanvas = android.graphics.Canvas(fullBitmap)
                                             fullCanvas.drawColor(noteColor.toArgb())
                                             view.draw(fullCanvas)

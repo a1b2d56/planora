@@ -1,4 +1,4 @@
-﻿package com.planora.app.core.data.backup
+package com.planora.app.core.data.backup
 
 import com.planora.app.core.data.database.entities.*
 
@@ -11,6 +11,8 @@ data class CloudSyncData(
     val exportDateMs: Long,
     val tasks: List<Task>,
     val transactions: List<Transaction>,
+    val accounts: List<Account>,
+    val budgets: List<Budget>,
     val savingsGoals: List<SavingsGoal>,
     val calendarEvents: List<CalendarEvent>,
     val notes: List<Note>,

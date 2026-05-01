@@ -20,7 +20,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.planora.app.R
 import com.planora.app.core.data.database.entities.Note
-import com.planora.app.core.ui.theme.ExpenseRed
+import com.planora.app.core.ui.theme.*
 import com.planora.app.core.ui.components.*
 import com.planora.app.core.utils.DateUtils
 import com.planora.app.core.utils.stripContentForPreview
@@ -43,7 +43,7 @@ fun NotesScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            /* ── Elevated header: top bar + search ───────────── */
+            /* Elevated header: top bar + search */
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),

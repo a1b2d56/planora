@@ -150,7 +150,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         try {
             val info = context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
             info.versionName ?: "Unknown"
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             "Unknown"
         }
     }
@@ -365,8 +365,47 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 Spacer(Modifier.height(10.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ThemeOption("Light", R.drawable.ic_light_mode, AppTheme.LIGHT, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
-                    ThemeOption("Dark", R.drawable.ic_amoled, AppTheme.DARK, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
-                    ThemeOption("Midnight", R.drawable.ic_dark_mode, AppTheme.MIDNIGHT, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                    ThemeOption("Dark", R.drawable.ic_dark_mode, AppTheme.DARK, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                    ThemeOption("Midnight", R.drawable.ic_amoled, AppTheme.MIDNIGHT, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ThemeOption("Espresso", R.drawable.ic_cat_food, AppTheme.ESPRESSO, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                    ThemeOption("Matcha", R.drawable.ic_cat_health, AppTheme.MATCHA, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                    ThemeOption("Nord", R.drawable.ic_beach, AppTheme.NORD, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ThemeOption("Rosé", R.drawable.ic_cake, AppTheme.ROSE, state.appTheme, Modifier.weight(1f)) { viewModel.setAppTheme(it) }
+                    Box(Modifier.weight(1f))
+                    Box(Modifier.weight(1f))
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Navigation Bar Options
+        SectionLabel("Navigation Bar")
+        PlanoraCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Select exactly 4 pages to display on the bottom navigation bar. Dashboard is always accessible via the first swipe page.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(16.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NavbarToggle("Tasks", "tasks", state.navbarPages, viewModel, Modifier.weight(1f))
+                        NavbarToggle("Money", "money", state.navbarPages, viewModel, Modifier.weight(1f))
+                        NavbarToggle("Savings", "savings", state.navbarPages, viewModel, Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NavbarToggle("Events", "calendar", state.navbarPages, viewModel, Modifier.weight(1f))
+                        NavbarToggle("Notes", "notes", state.navbarPages, viewModel, Modifier.weight(1f))
+                        Box(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -385,6 +424,12 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                     R.drawable.ic_notifications, MaterialTheme.colorScheme.tertiary,
                     "Notifications", "Savings goal daily reminders",
                     SettingsRowType.Toggle(state.notificationsEnabled, viewModel::setNotificationsEnabled)
+                )
+                SettingsDivider()
+                SettingsRow(
+                    R.drawable.ic_lock, MaterialTheme.colorScheme.error,
+                    "App Lock", "Require biometric to open app",
+                    SettingsRowType.Toggle(state.biometricEnabled, viewModel::setBiometricEnabled)
                 )
                 SettingsDivider()
                 SettingsRow(
@@ -422,6 +467,34 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                     title = "Import Local Backup",
                     subtitle = "Restore an encrypted .planora file",
                     type = SettingsRowType.Click { offlineImportLauncher.launch(arrayOf("application/x-planora", "*/*")) }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Manage Data
+        SectionLabel("Manage Data")
+        PlanoraCard(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column {
+                SettingsRow(
+                    iconRes = R.drawable.ic_shortcut_transfer,
+                    iconBg = MaterialTheme.colorScheme.primary,
+                    title = "Export to CSV",
+                    subtitle = "Generate a spreadsheet of all transactions",
+                    type = SettingsRowType.Click { viewModel.exportToCsv(activity) }
+                )
+                SettingsDivider()
+                SettingsRow(
+                    iconRes = R.drawable.ic_lock,
+                    iconBg = MaterialTheme.colorScheme.error,
+                    title = "Clear All Data",
+                    subtitle = "Wipe all local financial records (Dangerous)",
+                    type = SettingsRowType.Click { /* Future confirmation dialog */ }
                 )
             }
         }
@@ -578,4 +651,33 @@ private fun PasswordDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
+}
+
+@Composable
+fun NavbarToggle(
+    label: String,
+    key: String,
+    currentSelection: Set<String>,
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
+    val isSelected = key in currentSelection
+    Surface(
+        modifier = modifier.height(44.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        onClick = {
+            val current = currentSelection.filter { it != "dashboard" }.toMutableSet()
+            if (isSelected) {
+                if (current.size > 1) current.remove(key)
+            } else {
+                if (current.size < 4) current.add(key)
+            }
+            viewModel.setNavbarPages(current)
+        }
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal, color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

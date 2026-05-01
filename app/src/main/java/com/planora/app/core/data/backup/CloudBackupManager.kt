@@ -68,6 +68,8 @@ class CloudBackupManager @Inject constructor() {
                 exportDateMs = System.currentTimeMillis(),
                 tasks = syncDao.getAllTasks(),
                 transactions = syncDao.getAllTransactions(),
+                accounts = syncDao.getAllAccounts(),
+                budgets = syncDao.getAllBudgets(),
                 savingsGoals = syncDao.getAllSavingsGoals(),
                 calendarEvents = syncDao.getAllCalendarEvents(),
                 notes = syncDao.getAllNotes(),
@@ -164,6 +166,8 @@ class CloudBackupManager @Inject constructor() {
             database.syncDao().applySyncData(
                 tasks = syncData.tasks,
                 transactions = syncData.transactions,
+                accounts = syncData.accounts,
+                budgets = syncData.budgets,
                 goals = syncData.savingsGoals,
                 events = syncData.calendarEvents,
                 notes = syncData.notes

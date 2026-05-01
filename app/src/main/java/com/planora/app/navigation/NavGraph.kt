@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
@@ -46,6 +47,13 @@ sealed class Screen(val route: String) {
     data object Notes      : Screen("notes")
     data object Settings   : Screen("settings")
 
+    data object Accounts   : Screen("accounts")
+    data object AccountDetail : Screen("account_detail/{accountId}")
+    data object Budgets    : Screen("budgets")
+    data object Insights   : Screen("insights")
+    data object Subscriptions : Screen("subscriptions")
+    data object SmsImport : Screen("sms_import")
+
     data object AddEditTask : Screen("add_edit_task?taskId={taskId}") {
         fun createRoute(id: Long? = null) = if (id != null) "add_edit_task?taskId=$id" else "add_edit_task"
     }
@@ -70,30 +78,20 @@ sealed class Screen(val route: String) {
 
 private val ScrimColor = Color.Black.copy(alpha = 0.5f)
 
-private val swipePages = listOf(
-    Screen.Dashboard,
-    Screen.Tasks,
-    Screen.Money,
-    Screen.Savings,
-    Screen.Calendar,
-    Screen.Notes
-)
-private val swipePageIndex: Map<Screen, Int> = swipePages.withIndex().associate { (i, s) -> s to i }
-
-
 data class NavItem(val screen: Screen, val label: String, @param:DrawableRes val icon: Int)
 
-val navItems = listOf(
-    NavItem(Screen.Tasks,    "Tasks",    R.drawable.ic_check_circle),
-    NavItem(Screen.Money,    "Money",    R.drawable.ic_account_balance),
-    NavItem(Screen.Savings,  "Savings",  R.drawable.ic_savings),
-    NavItem(Screen.Calendar, "Calendar", R.drawable.ic_calendar_month),
-    NavItem(Screen.Notes,    "Notes",    R.drawable.ic_sticky_note)
+val allScreensMap = mapOf(
+    "dashboard" to NavItem(Screen.Dashboard, "Dashboard", R.drawable.ic_dashboard),
+    "tasks" to NavItem(Screen.Tasks, "Tasks", R.drawable.ic_check_circle),
+    "money" to NavItem(Screen.Money, "Money", R.drawable.ic_account_balance),
+    "savings" to NavItem(Screen.Savings, "Savings", R.drawable.ic_savings),
+    "calendar" to NavItem(Screen.Calendar, "Calendar", R.drawable.ic_calendar_month),
+    "notes" to NavItem(Screen.Notes, "Notes", R.drawable.ic_sticky_note)
 )
-
 
 @Composable
 fun PlanoraNavGraph(prefsManager: PrefsManager) {
+    val navbarPages by prefsManager.navbarPages.collectAsState(initial = setOf("tasks", "money", "savings", "calendar"))
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
 
@@ -132,6 +130,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
 
         composable(Screen.Main.route) {
             MainPagerHost(
+                navbarPagesSet               = navbarPages,
                 onNavigateToAddTask          = { navController.navigate(Screen.AddEditTask.createRoute()) },
                 onNavigateToEditTask         = { navController.navigate(Screen.AddEditTask.createRoute(it)) },
                 onNavigateToAddTransaction   = { navController.navigate(Screen.AddEditTransaction.createRoute()) },
@@ -141,9 +140,28 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
                 onNavigateToAddGoal          = { navController.navigate(Screen.AddEditGoal.createRoute()) },
                 onNavigateToEditGoal         = { id -> navController.navigate(Screen.AddEditGoal.createRoute(id = id)) },
                 onNavigateToNote             = { navController.navigate(Screen.NoteEditor.createRoute(it)) },
-                onNavigateToSettings         = { navController.navigate(Screen.Settings.route) }
+                onNavigateToSettings         = { navController.navigate(Screen.Settings.route) },
+                onNavigateToAccounts         = { navController.navigate(Screen.Accounts.route) },
+                onNavigateToBudgets          = { navController.navigate(Screen.Budgets.route) },
+                onNavigateToInsights         = { navController.navigate(Screen.Insights.route) },
+                onNavigateToSubscriptions    = { navController.navigate(Screen.Subscriptions.route) },
+                onNavigateToSmsImport        = { navController.navigate(Screen.SmsImport.route) }
             )
         }
+
+        composable(Screen.Accounts.route) { com.planora.app.feature.money.AccountsScreen(onBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("account_detail/$id") }) }
+        composable(Screen.AccountDetail.route) { back ->
+            val id = back.arguments?.getString("accountId")?.toLongOrNull() ?: -1L
+            com.planora.app.feature.money.AccountDetailScreen(
+                accountId = id,
+                onBack = { navController.popBackStack() },
+                onNavigateToEditTransaction = { txnId -> navController.navigate("add_edit_transaction?transactionId=$txnId") }
+            )
+        }
+        composable(Screen.Budgets.route) { com.planora.app.feature.money.BudgetScreen(onBack = { navController.popBackStack() }) }
+        composable(Screen.Insights.route) { com.planora.app.feature.money.InsightsScreen(onBack = { navController.popBackStack() }) }
+        composable(Screen.Subscriptions.route) { com.planora.app.feature.money.SubscriptionsScreen(onBack = { navController.popBackStack() }) }
+        composable(Screen.SmsImport.route) { com.planora.app.feature.money.SmsImportScreen(onBack = { navController.popBackStack() }) }
 
 
         composable(Screen.AddEditTask.route,
@@ -197,6 +215,7 @@ fun PlanoraNavGraph(prefsManager: PrefsManager) {
 
 @Composable
 private fun MainPagerHost(
+    navbarPagesSet: Set<String>,
     onNavigateToAddTask: () -> Unit,
     onNavigateToEditTask: (Long) -> Unit,
     onNavigateToAddTransaction: () -> Unit,
@@ -206,32 +225,78 @@ private fun MainPagerHost(
     onNavigateToAddGoal: () -> Unit,
     onNavigateToEditGoal: (Long) -> Unit,
     onNavigateToNote: (Long?) -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAccounts: () -> Unit,
+    onNavigateToBudgets: () -> Unit,
+    onNavigateToInsights: () -> Unit,
+    onNavigateToSubscriptions: () -> Unit,
+    onNavigateToSmsImport: () -> Unit
 ) {
     val scope      = rememberCoroutineScope()
-    val pagerState = rememberPagerState(initialPage = 0) { swipePages.size }
     var sidebarOpen by remember { mutableStateOf(false) }
 
+    var activeUnpinnedScreen by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val dynamicNavItems = remember(navbarPagesSet) {
+        val orderedKeys = listOf("tasks", "money", "savings", "calendar", "notes")
+        orderedKeys.filter { it in navbarPagesSet }.take(5).mapNotNull { allScreensMap[it] }
+    }
+
+    val dynamicSwipePages = remember(dynamicNavItems, activeUnpinnedScreen) {
+        val pages = mutableListOf<Screen>(Screen.Dashboard)
+        pages.addAll(dynamicNavItems.map { it.screen })
+        val unpinned: Screen? = if (activeUnpinnedScreen != null) allScreensMap[activeUnpinnedScreen]?.screen else null
+        if (unpinned != null && !pages.contains(unpinned)) {
+            pages.add(unpinned)
+        }
+        pages
+    }
+
+    val swipePageIndex = remember(dynamicSwipePages) { dynamicSwipePages.withIndex().associate { (i, s) -> s to i } }
+
+    val pagerState = rememberPagerState(initialPage = 0) { dynamicSwipePages.size }
     val currentPageIndex = pagerState.currentPage
 
     val navigateToPage: (Int) -> Unit = remember(scope, pagerState) {
         { index -> scope.launch { pagerState.animateScrollToPage(index) } }
     }
 
+    var targetScrollScreen by remember { mutableStateOf<Screen?>(null) }
+    
+    LaunchedEffect(dynamicSwipePages, targetScrollScreen) {
+        if (targetScrollScreen != null) {
+            val index = dynamicSwipePages.indexOf(targetScrollScreen)
+            if (index != -1) {
+                pagerState.scrollToPage(index)
+                targetScrollScreen = null
+            }
+        }
+    }
+
+    LaunchedEffect(currentPageIndex) {
+        val currentScreen = dynamicSwipePages.getOrNull(currentPageIndex)
+        if (activeUnpinnedScreen != null) {
+            val unpinned = allScreensMap[activeUnpinnedScreen]?.screen
+            if (currentScreen != null && currentScreen != unpinned) {
+                activeUnpinnedScreen = null
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
 
-        // â”€â”€ Swipeable pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Swipeable pages
         HorizontalPager(
             state            = pagerState,
             modifier         = Modifier.fillMaxSize(),
             userScrollEnabled = true,
             beyondViewportPageCount = 0
         ) { page ->
-            when (swipePages[page]) {
+            when (dynamicSwipePages[page]) {
                 Screen.Dashboard -> DashboardScreen(
-                    onNavigateToMoney   = { navigateToPage(2) },
-                    onNavigateToTasks   = { navigateToPage(1) },
-                    onNavigateToSavings = { navigateToPage(3) }
+                    onNavigateToMoney   = { navigateToPage(swipePageIndex[Screen.Money] ?: 0) },
+                    onNavigateToTasks   = { navigateToPage(swipePageIndex[Screen.Tasks] ?: 0) },
+                    onNavigateToSavings = { navigateToPage(swipePageIndex[Screen.Savings] ?: 0) }
                 )
                 Screen.Tasks    -> TasksScreen(
                     onNavigateToAddTask  = onNavigateToAddTask,
@@ -239,7 +304,12 @@ private fun MainPagerHost(
                 )
                 Screen.Money    -> MoneyScreen(
                     onNavigateToAddTransaction  = onNavigateToAddTransaction,
-                    onNavigateToEditTransaction = onNavigateToEditTransaction
+                    onNavigateToEditTransaction = onNavigateToEditTransaction,
+                    onNavigateToAccounts = onNavigateToAccounts,
+                    onNavigateToBudgets = onNavigateToBudgets,
+                    onNavigateToInsights = onNavigateToInsights,
+                    onNavigateToSubscriptions = onNavigateToSubscriptions,
+                    onNavigateToSmsImport = onNavigateToSmsImport
                 )
                 Screen.Savings  -> SavingsScreen(
                     onNavigateToAddGoal  = onNavigateToAddGoal,
@@ -254,44 +324,51 @@ private fun MainPagerHost(
             }
         }
 
-        // â”€â”€ Floating nav bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Floating nav bar
         FloatingNavBar(
-            items          = navItems,
-            currentPage    = currentPageIndex,
+            items          = dynamicNavItems,
+            currentScreen  = dynamicSwipePages.getOrNull(currentPageIndex),
             onMenuClick    = { sidebarOpen = true },
-            onNavigate     = { screen -> navigateToPage(swipePageIndex[screen] ?: 0) },
+            onNavigate     = { screen -> 
+                activeUnpinnedScreen = null
+                navigateToPage(swipePageIndex[screen] ?: 0) 
+            },
             modifier       = Modifier.align(Alignment.BottomCenter)
         )
 
-        // â”€â”€ Sidebar scrim â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        AnimatedVisibility(visible = sidebarOpen, enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .background(ScrimColor)
-                    .clickable(indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) { sidebarOpen = false }
-            )
+        val currentScreen = dynamicSwipePages.getOrNull(currentPageIndex)
+        val onSidebarNavigate: (String) -> Unit = { key ->
+            sidebarOpen = false
+            val screenObj = allScreensMap[key]
+            if (screenObj != null) {
+                val screen = screenObj.screen
+                if (dynamicNavItems.any { it.screen == screen } || screen == Screen.Dashboard) {
+                    activeUnpinnedScreen = null
+                    val index = dynamicSwipePages.indexOf(screen)
+                    if (index != -1) navigateToPage(index)
+                } else {
+                    activeUnpinnedScreen = key
+                    targetScrollScreen = screen
+                }
+            }
         }
-        AnimatedVisibility(
-            visible  = sidebarOpen,
-            enter    = slideInHorizontally(tween(280, easing = EaseOutCubic)) { -it },
-            exit     = slideOutHorizontally(tween(220, easing = EaseInCubic)) { -it },
-            modifier = Modifier.align(Alignment.CenterStart)
-        ) {
-            Sidebar(
-                currentPage      = currentPageIndex,
-                onNavigateToPage = { index -> sidebarOpen = false; navigateToPage(index) },
-                onNavigateToSettings = { sidebarOpen = false; onNavigateToSettings() }
-            )
-        }
+
+        // Sidebar
+        SidebarOverlay(
+            isOpen               = sidebarOpen,
+            onClose              = { sidebarOpen = false },
+            currentScreen        = currentScreen,
+            onNavigateToPage     = onSidebarNavigate,
+            onNavigateToSettings = onNavigateToSettings
+        )
     }
 }
 
-// â”€â”€ Floating navbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Floating navbar
 @Composable
 fun FloatingNavBar(
     items: List<NavItem>,
-    currentPage: Int,
+    currentScreen: Screen?,
     onMenuClick: () -> Unit,
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier
@@ -324,12 +401,11 @@ fun FloatingNavBar(
                     onClick  = onMenuClick,
                     modifier = Modifier.weight(1f)
                 )
-                items.forEachIndexed { i, item ->
-                    val pageIndex = i + 1
+                items.forEach { item ->
                     NavPill(
                         iconRes  = item.icon,
                         label    = item.label,
-                        selected = currentPage == pageIndex,
+                        selected = currentScreen == item.screen,
                         onClick  = { onNavigate(item.screen) },
                         modifier = Modifier.weight(1f)
                     )
@@ -339,7 +415,7 @@ fun FloatingNavBar(
     }
 }
 
-// â”€â”€ Nav pill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Nav pill
 @Composable
 private fun NavPill(
     @DrawableRes iconRes: Int,
@@ -379,11 +455,42 @@ private fun NavPill(
     }
 }
 
-// â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Sidebar Overlay
+@Composable
+private fun SidebarOverlay(
+    isOpen: Boolean,
+    onClose: () -> Unit,
+    currentScreen: Screen?,
+    onNavigateToPage: (String) -> Unit,
+    onNavigateToSettings: () -> Unit
+) {
+    AnimatedVisibility(visible = isOpen, enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .background(ScrimColor)
+                .clickable(indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) { onClose() }
+        )
+    }
+    AnimatedVisibility(
+        visible  = isOpen,
+        enter    = slideInHorizontally(tween(280, easing = EaseOutCubic)) { -it },
+        exit     = slideOutHorizontally(tween(220, easing = EaseInCubic)) { -it },
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Sidebar(
+            currentScreen      = currentScreen,
+            onNavigateToPage = onNavigateToPage,
+            onNavigateToSettings = onNavigateToSettings
+        )
+    }
+}
+
+// Sidebar
 @Composable
 private fun Sidebar(
-    currentPage: Int,
-    onNavigateToPage: (Int) -> Unit,
+    currentScreen: Screen?,
+    onNavigateToPage: (String) -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     Surface(
@@ -418,17 +525,24 @@ private fun Sidebar(
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
 
-            SidebarItem(R.drawable.ic_dashboard, "Dashboard", currentPage == 0) { onNavigateToPage(0) }
+            SidebarItem(R.drawable.ic_dashboard, "Dashboard", currentScreen == Screen.Dashboard) { onNavigateToPage("dashboard") }
 
-            Spacer(Modifier.height(4.dp))
-            Text("Main", style = MaterialTheme.typography.labelSmall,
+            Spacer(Modifier.height(8.dp))
+            Text("General", style = MaterialTheme.typography.labelSmall,
                 color    = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
 
+            SidebarItem(R.drawable.ic_check_circle, "Tasks", currentScreen == Screen.Tasks) { onNavigateToPage("tasks") }
+            SidebarItem(R.drawable.ic_account_balance, "Money", currentScreen == Screen.Money) { onNavigateToPage("money") }
+            SidebarItem(R.drawable.ic_savings, "Savings", currentScreen == Screen.Savings) { onNavigateToPage("savings") }
 
-            navItems.forEachIndexed { i, item ->
-                SidebarItem(item.icon, item.label, currentPage == i + 1) { onNavigateToPage(i + 1) }
-            }
+            Spacer(Modifier.height(12.dp))
+            Text("Tools & Personal", style = MaterialTheme.typography.labelSmall,
+                color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
+
+            SidebarItem(R.drawable.ic_calendar_month, "Events", currentScreen == Screen.Calendar) { onNavigateToPage("calendar") }
+            SidebarItem(R.drawable.ic_sticky_note, "Notes", currentScreen == Screen.Notes) { onNavigateToPage("notes") }
 
             Spacer(Modifier.weight(1f))
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

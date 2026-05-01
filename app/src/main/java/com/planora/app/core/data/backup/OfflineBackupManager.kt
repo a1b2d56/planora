@@ -15,7 +15,6 @@ import javax.inject.Singleton
 
 /**
  * Handles completely offline data export and import directly using URI content streams.
- * Uses military-grade AES-GCM encryption with PBKDF2 keys derived from a user password.
  */
 @Singleton
 class OfflineBackupManager @Inject constructor(
@@ -40,6 +39,8 @@ class OfflineBackupManager @Inject constructor(
                 exportDateMs = System.currentTimeMillis(),
                 tasks = syncDao.getAllTasks(),
                 transactions = syncDao.getAllTransactions(),
+                accounts = syncDao.getAllAccounts(),
+                budgets = syncDao.getAllBudgets(),
                 savingsGoals = syncDao.getAllSavingsGoals(),
                 calendarEvents = syncDao.getAllCalendarEvents(),
                 notes = syncDao.getAllNotes(),
@@ -95,6 +96,8 @@ class OfflineBackupManager @Inject constructor(
             database.syncDao().applySyncData(
                 tasks = syncData.tasks,
                 transactions = syncData.transactions,
+                accounts = syncData.accounts,
+                budgets = syncData.budgets,
                 goals = syncData.savingsGoals,
                 events = syncData.calendarEvents,
                 notes = syncData.notes

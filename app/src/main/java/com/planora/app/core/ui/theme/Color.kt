@@ -13,6 +13,34 @@ val PriorityHigh   = ExpenseRed
 val PriorityMedium = WarningAmber
 val PriorityLow    = IncomeGreen
 
+// Espresso Theme Palette (Modern Chocolate)
+val EspressoBackground = Color(0xFF1B1716)
+val EspressoSurface    = Color(0xFF231F1E)
+val EspressoPrimary    = Color(0xFFBDA67A)
+val EspressoOnPrimary  = Color(0xFF322814)
+val EspressoSecondary  = Color(0xFF7BA7BC)
+
+// Matcha Theme Palette (Soft Earthy Green)
+val MatchaBackground  = Color(0xFF141C14)
+val MatchaSurface     = Color(0xFF1C261C)
+val MatchaPrimary     = Color(0xFF8FBC8F)
+val MatchaOnPrimary   = Color(0xFF1A2E1A)
+val MatchaSecondary   = Color(0xFFA3C9A8)
+
+// Nord Theme Palette (Arctic Blue-Grey)
+val NordBackground  = Color(0xFF2E3440)
+val NordSurface     = Color(0xFF3B4252)
+val NordPrimary     = Color(0xFF88C0D0)
+val NordOnPrimary   = Color(0xFF2E3440)
+val NordSecondary   = Color(0xFF81A1C1)
+
+// Rosé Theme Palette (Warm Blush Pink)
+val RoseBackground  = Color(0xFF1C1418)
+val RoseSurface     = Color(0xFF261C22)
+val RosePrimary     = Color(0xFFE8A0BF)
+val RoseOnPrimary   = Color(0xFF2A1520)
+val RoseSecondary   = Color(0xFFC9A0DC)
+
 // Chart palette
 val chartColors = listOf(
     Color(0xFFBDA67A),  // tan

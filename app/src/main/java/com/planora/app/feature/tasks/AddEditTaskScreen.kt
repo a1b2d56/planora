@@ -1,4 +1,4 @@
-﻿package com.planora.app.feature.tasks
+package com.planora.app.feature.tasks
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme

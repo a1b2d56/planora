@@ -5,10 +5,15 @@ A native Android productivity hub that consolidates tasks, finances, and notes i
 ## Core Capabilities
 
 - **Notes & Handwriting**: Rich-text editing alongside a custom, low-latency, velocity-aware Canvas drawing engine for handwritten notes. Includes smart content-aware image exporting.
-- **Financial Tracking**: Income, expenses, and savings goals tracked locally with dynamic Compose charts and category insights.
-- **Task & Calendar Management**: Priority-layered task tracking with a custom scrollable month view.
+- **Financial Intelligence**: 
+    - **SMS Auto-Import**: Intelligent scanning of bank SMS to automatically log transactions without manual entry.
+    - **Global Currency Detection**: Supports 20+ global currencies (INR, USD, EUR, GBP, etc.) with automatic detection and app-wide symbol switching.
+    - **Dynamic Wallet Management**: Automatically detects your bank (HDFC, SBI, Chase, HSBC, etc.) from SMS and creates dedicated wallets on the fly.
+    - **Transaction-Driven Balances**: 100% accurate real-time balance tracking derived directly from transaction history.
+    - **Insights**: Beautiful Compose-based charts and category spending analysis.
+- **Task & Calendar Management**: Priority-layered task tracking with a custom scrollable month view and event scheduling.
 - **Cloud Sync**: 100% serverless cloud backups directly to the user's personal Google Drive, via Google Credential Manager.
-- **Security-First**: Full database encryption via SQLCipher ensures all financial and personal data remains protected at rest.
+- **Security-First**: Full database encryption via SQLCipher ensures all financial and personal data remains protected at rest. Supports Biometric unlock.
 
 ## Tech Stack
 

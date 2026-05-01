@@ -48,7 +48,7 @@ class RichTextState {
     var selection by mutableStateOf(TextRange(0))
         private set
     fun isStyleActive(type: SpanType): Boolean {
-        @Suppress("UNUSED_VARIABLE") val v = _styleVersion  // subscribe for recomposition
+        _styleVersion.let { /* subscribe for recomposition */ }
         if (_hasUserToggle) return type in _userToggledStyles
         val min = selection.min
         return _spans.any { it.type == type && it.start <= min && it.end >= min && (it.start < min || it.end > min) }

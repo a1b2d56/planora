@@ -23,18 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.planora.app.R
 import com.planora.app.core.data.database.entities.Priority
-import com.planora.app.core.ui.theme.ExpenseRed
-import com.planora.app.core.ui.theme.IncomeGreen
-import com.planora.app.core.ui.theme.PriorityHigh
-import com.planora.app.core.ui.theme.PriorityLow
-import com.planora.app.core.ui.theme.PriorityMedium
-import com.planora.app.core.ui.theme.PlanoraGreen
+import com.planora.app.core.ui.theme.*
 import com.planora.app.core.utils.DateUtils
+import com.planora.app.core.utils.FormatUtils
+import androidx.compose.ui.text.style.TextOverflow
 
-// Spacing and Layout tokens
-val SpacingSmall  = 8.dp
-val SpacingMedium = 16.dp
-val SpacingLarge  = 24.dp
 
 // Standardised Shape tokens
 val PillShape   = CircleShape
@@ -127,12 +120,13 @@ fun DetailTopBar(title: String, onBack: () -> Unit) {
 @Composable
 fun SectionHeader(
     title: String,
+    modifier: Modifier = Modifier,
     compact: Boolean = false,
     action: String? = null,
     onAction: (() -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .padding(horizontal = if (compact) 24.dp else 20.dp, vertical = if (compact) 6.dp else 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -201,8 +195,8 @@ fun PlanoraCard(
             val gradientEnd = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
             val brush = Brush.linearGradient(listOf(gradientStart, gradientEnd))
             CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-                Box(modifier = Modifier.background(brush)) {
-                    Column(content = content)
+                Box(modifier = Modifier.fillMaxSize().background(brush)) {
+                    Column(modifier = Modifier.fillMaxWidth(), content = content)
                 }
             }
         } else {
@@ -222,9 +216,11 @@ fun PlanoraCard(
 fun SwipeToDeleteBox(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     cornerRadius: Dp = 16.dp,
     content: @Composable () -> Unit
 ) {
+    if (!enabled) { content(); return }
     val dismissState = rememberSwipeToDismissBoxState()
     LaunchedEffect(dismissState.currentValue) {
         if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
@@ -355,17 +351,31 @@ fun EmptyState(
     action: (@Composable () -> Unit)? = null
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(40.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 60.dp, bottom = 40.dp).padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Icon(painter = painterResource(iconRes), contentDescription = null,
-            modifier = Modifier.size(72.dp).alpha(0.7f),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(title, style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
-        Text(subtitle, style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
+        Surface(
+            modifier = Modifier.size(90.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, style = MaterialTheme.typography.titleLarge, 
+                color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         action?.invoke()
     }
 }
@@ -420,9 +430,10 @@ fun PlanoraSearchBar(
 fun PlanoraScreen(
     title: String,
     onBack: () -> Unit,
-    actionButtonLabel: String,
-    onActionButtonClick: () -> Unit,
+    actionButtonLabel: String? = null,
+    onActionButtonClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    scrollable: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Scaffold(
@@ -435,23 +446,31 @@ fun PlanoraScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp)
                 .imePadding()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(Modifier.height(8.dp))
             
-            content()
-
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = onActionButtonClick,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = PillShape,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(actionButtonLabel, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                content()
             }
-            Spacer(Modifier.height(24.dp))
+
+            if (actionButtonLabel != null && onActionButtonClick != null) {
+                Spacer(Modifier.height(16.dp))
+                Button(
+                    onClick = onActionButtonClick,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = PillShape,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(actionButtonLabel, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }
@@ -662,4 +681,79 @@ fun PlanoraTextField(
             cursorColor = MaterialTheme.colorScheme.primary
         )
     )
+}
+
+@Composable
+fun PatternedCard(
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    patternAlpha: Float = 0.15f,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
+        color = containerColor,
+        contentColor = contentColor,
+        shadowElevation = 8.dp
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Subtle geometric pattern
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val step = 40.dp.toPx()
+                for (x in -step.toInt()..size.width.toInt() step step.toInt()) {
+                    for (y in -step.toInt()..size.height.toInt() step step.toInt()) {
+                        drawCircle(
+                            color = Color.White.copy(alpha = patternAlpha),
+                            radius = 20.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(x.toFloat(), y.toFloat())
+                        )
+                    }
+                }
+            }
+            
+            Box(modifier = Modifier.padding(24.dp)) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun StatSummaryRow(
+    income: Double,
+    expense: Double,
+    currencySymbol: String,
+    modifier: Modifier = Modifier
+) {
+    val net = income - expense
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        listOf(
+            "Income" to income to IncomeGreen,
+            "Expense" to expense to ExpenseRed,
+            "Net" to net to (if (net >= 0) IncomeGreen else ExpenseRed)
+        ).forEach { (labelAmount, color) ->
+            val (label, amount) = labelAmount
+            PlanoraCard(
+                modifier = Modifier.weight(1f),
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            ) {
+                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        FormatUtils.formatCurrency(amount, currencySymbol),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
 }

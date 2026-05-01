@@ -25,8 +25,8 @@ android {
         applicationId = "com.planora.app"
         minSdk        = 34
         targetSdk     = 36
-        versionCode   = 129
-        versionName   = "1.8-beta"
+        versionCode   = 130
+        versionName   = "1.9.7-beta"
         vectorDrawables { useSupportLibrary = true }
     }
 
@@ -195,4 +195,13 @@ dependencies {
     
     // JSON Serialization
     implementation("com.google.code.gson:gson:2.13.2")
+
+    // Charts
+    implementation("io.github.ehsannarmani:compose-charts:0.1.2")
+
+    // Biometric
+    implementation("androidx.biometric:biometric:1.1.0")
+
+    // PDF parsing
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 }

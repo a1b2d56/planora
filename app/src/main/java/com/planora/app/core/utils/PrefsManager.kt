@@ -27,6 +27,8 @@ class PrefsManager @Inject constructor(
         val USER_PHOTO_URL        = stringPreferencesKey("user_photo_url")
 
         val HAS_ONBOARDED         = booleanPreferencesKey("has_onboarded")
+        val BIOMETRIC_ENABLED     = booleanPreferencesKey("biometric_enabled")
+        val NAVBAR_PAGES          = stringSetPreferencesKey("navbar_pages")
     }
 
     // Helper for safe DataStore flows
@@ -36,8 +38,10 @@ class PrefsManager @Inject constructor(
             .map(transform)
 
     val appTheme: Flow<AppTheme> = safeFlow { prefs ->
-        val name = prefs[Keys.APP_THEME] ?: AppTheme.MIDNIGHT.name
-        try { AppTheme.valueOf(name) } catch (_: Exception) { AppTheme.MIDNIGHT }
+        val name = prefs[Keys.APP_THEME] ?: AppTheme.DARK.name
+        // Gracefully handle removed DYNAMIC from previous versions
+        val resolved = if (name == "DYNAMIC") "DARK" else name
+        try { AppTheme.valueOf(resolved) } catch (_: Exception) { AppTheme.DARK }
     }
     val notificationsEnabled: Flow<Boolean> = safeFlow { it[Keys.NOTIFICATIONS_ENABLED] ?: true }
     val currencySymbol: Flow<String>        = safeFlow { it[Keys.CURRENCY_SYMBOL] ?: "$" }
@@ -45,6 +49,8 @@ class PrefsManager @Inject constructor(
     val userPhotoUrl: Flow<String>          = safeFlow { it[Keys.USER_PHOTO_URL] ?: "" }
 
     val hasOnboarded: Flow<Boolean>         = safeFlow { it[Keys.HAS_ONBOARDED] ?: false }
+    val biometricEnabled: Flow<Boolean>     = safeFlow { it[Keys.BIOMETRIC_ENABLED] ?: false }
+    val navbarPages: Flow<Set<String>>      = safeFlow { it[Keys.NAVBAR_PAGES] ?: setOf("tasks", "money", "savings", "calendar") }
 
     suspend fun setAppTheme(theme: AppTheme)              = edit { it[Keys.APP_THEME] = theme.name }
     suspend fun setNotificationsEnabled(enabled: Boolean) = edit { it[Keys.NOTIFICATIONS_ENABLED] = enabled }
@@ -53,6 +59,8 @@ class PrefsManager @Inject constructor(
     suspend fun setUserPhotoUrl(url: String)              = edit { it[Keys.USER_PHOTO_URL] = url }
 
     suspend fun setHasOnboarded(done: Boolean)            = edit { it[Keys.HAS_ONBOARDED] = done }
+    suspend fun setBiometricEnabled(enabled: Boolean)     = edit { it[Keys.BIOMETRIC_ENABLED] = enabled }
+    suspend fun setNavbarPages(pages: Set<String>)        = edit { it[Keys.NAVBAR_PAGES] = pages }
 
     private suspend fun edit(block: (MutablePreferences) -> Unit) {
         context.dataStore.edit(block)

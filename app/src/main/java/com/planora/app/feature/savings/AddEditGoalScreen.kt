@@ -1,4 +1,4 @@
-﻿package com.planora.app.feature.savings
+package com.planora.app.feature.savings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

@@ -1,4 +1,4 @@
-﻿package com.planora.app.feature.calendar
+package com.planora.app.feature.calendar
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -13,6 +13,7 @@ import com.planora.app.core.data.database.entities.CalendarEvent
 import com.planora.app.core.data.database.entities.EventType
 import com.planora.app.core.data.database.entities.displayName
 import com.planora.app.core.ui.components.*
+import com.planora.app.core.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
